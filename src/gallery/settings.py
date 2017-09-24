@@ -30,6 +30,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,11 +46,11 @@ INSTALLED_APPS = [
     'src.profiles',
     'src.albums',
     'src.images',
-    'src.categories',
     'src.comments',
     'src.likes',
-]
+    'src.tags',
 
+]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

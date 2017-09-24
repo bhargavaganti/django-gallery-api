@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block head_title %}Album  | {{ block.super}}{% endblock head_title %}
+
+{% block content %}
+<div class='row'>
+    <div class='col-sm-6 col-sm-offset-3'>
+        <h1>{{ object.name }}
+            <small> {{ object.timestamp}}</small>
+        </h1>
+        <HR>
+        <div class="col-sm-offset-1">
+            <p>{{ object.description }}</p>
+            <!--<div class="album-images">-->
+                <!--<h3>Images</h3>-->
+                <!--<div class="album-images-content">-->
+                    <!--<ul>-->
+                        <!--{% for img in images %}-->
+                            <!--<li>-->
+                                <!--{{img.name}} <br>-->
+                                <!--{% load staticfiles %}-->
+                                <!--<img src="{{ img.image.url }}" alt="{{img.name}}"/>-->
+                            <!--</li>-->
+                        <!--{% endfor %}-->
+                    <!--</ul>-->
+
+                <!--</div>-->
+            <!--</div>-->
+        </div>
+        <hr>
+        <!--<p> Updated <small>{{ object.updated|timesince }} ago</small> </p>-->
+    </div>
+    {% endblock %}
+</div>

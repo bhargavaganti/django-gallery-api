@@ -11,10 +11,9 @@ User = settings.AUTH_USER_MODEL
 
 class Profile(models.Model):
     user            = models.OneToOneField(User)
-    albums          = models.ManyToManyField("albums.Album", blank=True, null=True)
-    images          = models.ManyToManyField("images.Image", blank=True, null=True)
-    commented       = models.ManyToManyField("comments.Comment", blank=True, null=True)
-    liked           = models.ManyToManyField("likes.Like", blank=True, null=True)
+    albums          = models.ManyToManyField("albums.Album", blank=True)
+    commented       = models.ManyToManyField("comments.Comment", blank=True)
+    liked           = models.ManyToManyField("likes.Like", blank=True)
     profile_picture = models.ImageField(verbose_name="Profile picture", blank=True, null=True, upload_to='profile_pics')
     timestamp       = models.DateTimeField(auto_now_add=True)
     updated         = models.DateTimeField(auto_now=True)
@@ -27,3 +26,6 @@ class Profile(models.Model):
 
     def get_absolute_url(self): #get_absolute_url
         return reverse('profiles:detail', kwargs={'pk': self.pk})
+
+    def get_all_images(self):
+        pass
