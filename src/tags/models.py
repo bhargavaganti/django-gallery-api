@@ -5,8 +5,10 @@ from django.urls import reverse
 
 
 class Tag(models.Model):
-    name   = models.CharField(max_length=120, blank=False, null=False)
-    image  = models.ForeignKey("images.Image", blank=True, null=True)
+    name      = models.CharField(max_length=120, blank=False, null=False)
+    images    = models.ManyToManyField("images.Image", blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated   = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
