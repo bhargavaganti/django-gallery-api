@@ -45,6 +45,7 @@ class CreateAlbumAPI(CreateAPIView):
         profile = Profile.objects.get(user=self.request.user)
         serializer.save(owner=profile)
 
+
 class UpdateAlbumAPI(RetrieveUpdateAPIView):
     """
 
