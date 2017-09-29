@@ -1,40 +1,43 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
-from src.albums.models import Album
+from src.tags.models import Tag
 
-class AlbumSerializer(ModelSerializer):
+from src.images.api.serializers import ImageSerializer
+from src.images.models import Image
+
+
+class TagSerializer(ModelSerializer):
     """
 
     """
-    owner = SerializerMethodField()
+    images = SerializerMethodField()
     # image = SerializerMethodField() # TODO: image серијализатор ће бити имплементиран у својој класи
 
     class Meta:
-        model = Album
+        model = Tag
         fields = [
             'id',
-            'owner',
             'name',
-            'description',
             'images',
-            'is_public',
             'timestamp',
             'updated'
         ]
 
-    def get_owner(self, obj):
-        return str(obj.owner.user.username)
+    def get_images(self, obj):
+        images_qs = Image.objects.all()
+        images = ImageSerializer(images_qs, many=True).data
+        return images
 
-class CreateAlbumSerializer(ModelSerializer):
+class CreateTagSerializer(ModelSerializer):
     """
 
     """
     class Meta:
-        model = Album
+        model = Tag
         fields = [
-            'owner',
             'name',
-            'description',
             'images',
-            'is_public',
+            'timestamp',
         ]
+
+

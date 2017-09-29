@@ -1,68 +1,66 @@
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .permissions import IsOwnerOrReadOnly
 from rest_framework.permissions import AllowAny,IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView
-from .serializers import AlbumSerializer, CreateAlbumSerializer
-from src.albums.models import Album
+from .serializers import TagSerializer, CreateTagSerializer
+from src.tags.models import Tag
 from src.profiles.models import Profile
 
 
-class GetAlbumsAPI(ListAPIView):
+class GetTagsAPI(ListAPIView):
     """
-    Oво је прва АПИ класа у којој је потребно имплеменитрати
-    добављање свих објеката, и њихово презентовање у JSON формату
+
     """
-    serializer_class = AlbumSerializer
+    serializer_class = TagSerializer
     filter_backends = [SearchFilter] # ово мора бити низ!
-    search_fields = ('name', 'description', 'owner__user__username', 'timestamp', 'updated')
-    ordering_fields = '__all__'
+    search_fields = ('name', )
+    ordering_fields = 'name'
 
     def get_queryset(self, *args, **kwargs):
-        queryset_list = Album.objects.all()
+        queryset_list = Tag.objects.all()
         return queryset_list
 
 
-class GetAlbumAPI(RetrieveAPIView):
+class GetTagAPI(RetrieveAPIView):
     """
 
     """
-    queryset = Album.objects.all()
-    serializer_class = AlbumSerializer
-    # lookup_field = 'name' # ово се може користити уместо pk, дакле уместо albums/1 може albums/ime-albuma
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    # lookup_field = 'name' # ово се може користити уместо pk, дакле уместо tags/1 може tags/ime-albuma
 
 
-class CreateAlbumAPI(CreateAPIView):
+class CreateTagAPI(CreateAPIView):
     """
 
     """
-    queryset = Album.objects.all()
-    serializer_class = CreateAlbumSerializer
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
     permission_classes = [IsAuthenticated]
 
     # FIXME: размисли да ли ово стављати
-    def perform_create(self, serializer):
-        profile = Profile.objects.get(user=self.request.user)
-        serializer.save(owner=profile)
+    # def perform_create(self, serializer):
+    #     profile = Profile.objects.get(user=self.request.user)
+    #     serializer.save(owner=profile)
 
-class UpdateAlbumAPI(RetrieveUpdateAPIView):
+# class UpdateTagAPI(RetrieveUpdateAPIView):
+#     """
+#
+#     """
+#     queryset = Tag.objects.all()
+#     serializer_class = TagSerializer
+#     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+#
+#     # FIXME: размисли да ли ово стављати
+#     # def perform_create(self, serializer):
+#     #     profile = Profile.objects.get(user=self.request.user)
+#     #     serializer.save(owner=profile)
+
+
+class DeleteTagAPI(DestroyAPIView):
     """
 
     """
-    queryset = Album.objects.all()
-    serializer_class = AlbumSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-
-    # FIXME: размисли да ли ово стављати
-    def perform_create(self, serializer):
-        profile = Profile.objects.get(user=self.request.user)
-        serializer.save(owner=profile)
-
-
-class DeleteAlbumAPI(DestroyAPIView):
-    """
-
-    """
-    queryset = Album.objects.all()
-    serializer_class = AlbumSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [IsAdminUser]
