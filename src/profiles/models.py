@@ -14,7 +14,7 @@ class Profile(models.Model):
     albums          = models.ManyToManyField("albums.Album", blank=True)
     commented       = models.ManyToManyField("comments.Comment", blank=True)
     liked           = models.ManyToManyField("likes.Like", blank=True)
-    profile_picture = models.ImageField(verbose_name="Profile picture", blank=True, null=True, upload_to='profile_pics')
+    profile_picture = models.ImageField( blank=True, null=True, upload_to='profile_pics')
     timestamp       = models.DateTimeField(auto_now_add=True)
     updated         = models.DateTimeField(auto_now=True)
 
