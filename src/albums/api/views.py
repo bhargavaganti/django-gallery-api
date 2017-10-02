@@ -53,22 +53,6 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     serializer_class = AlbumSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAdminUser]
 
-    # def get(self, request, *args, **kwargs):
-    #     profile = Profile.objects.get(pk=self.kwargs.get("pk"))
-    #     album = None
-    #     if not profile:
-    #         return Response({"status":"fail", "code": 404})
-    #
-    #     album_id = self.kwargs.get("album_id")
-    #     if not album_id:
-    #         album = Response(self.get_object())
-    #     if self.request.user.is_superuser:
-    #         album = Response(Album.objects.get(pk=album_id))
-    #     album = profile.albums.filter(pk=album_id)
-    #     log(album)
-    #     serializer = (album)
-    #     return Response(serializer.data)
-
     def get_object(self):
         profile_id = self.kwargs.get("pk")
         profile = Profile.objects.get(pk=profile_id)
