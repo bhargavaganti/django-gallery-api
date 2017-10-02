@@ -19,7 +19,7 @@ class GetCommentsAPI(ListAPIView):
     filter_backends = [SearchFilter]  # ово мора бити низ!
 
     def get_queryset(self, *args, **kwargs):
-       # ipdb.set_trace()
+        # ipdb.set_trace()
         # get all Comments from image, if is set
         image_id = self.kwargs.get("image_id")
         if not image_id:
