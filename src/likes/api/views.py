@@ -16,10 +16,6 @@ class GetLikesAPI(ListAPIView):
     """
     serializer_class = LikeSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
-    search_fields = ('name',)
-    ordering_fields = 'name'
-
-    # lookup_field = 'Like'
 
     def get_queryset(self, *args, **kwargs):
         # get all Likes from image, if is set
@@ -28,7 +24,7 @@ class GetLikesAPI(ListAPIView):
             queryset_list = Like.objects.all()
         queryset_list = Like.objects.filter(image__pk=image_id)
         if queryset_list.count() != 1:
-            return Response({"status":"success"}, status=200)
+            return Response({"status": "success"}, status=200)
         return queryset_list
 
 
@@ -57,7 +53,7 @@ class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     def get_object(self):
         like_id = self.kwargs.get("like_id")
         if not like_id:
-            return Response({"status":"fail"}, status=404)
+            return Response({"status": "fail"}, status=404)
         like = Like.objects.get(pk=like_id)
         return like
 
