@@ -1,17 +1,17 @@
 from django.conf.urls import url
 
-from src.albums.api.views import GetAlbumsAPI, AlbumDetailAPIView
-
 from .views import GetProfilesAPI, CreateProfileAPI,ProfileDetailAPIView
-from src.images.api.views import GetImagesAPI
-from src.images.api.views import ImageDetailAPIView
-from src.tags.api.views   import GetTagsAPI
-from src.tags.api.views   import TagDetailAPIView
-from src.likes.api.views  import GetLikesAPI
-from src.likes.api.views  import LikeDetailAPIView
-from src.likes.api.views  import CreateLikeAPI
+from src.albums.api.views import GetAlbumsAPI, AlbumDetailAPIView
+from src.images.api.views import GetImagesAPI, ImageDetailAPIView
+from src.tags.api.views   import GetTagsAPI, TagDetailAPIView
+from src.likes.api.views  import GetLikesAPI, LikeDetailAPIView, CreateLikeAPI
+from src.comments.api.views import GetCommentsAPI, CreateCommentAPI, CommentDetailAPIView
 
 urlpatterns = [
+
+    url(r'(?P<pk>\d+)/albums/(?P<album_id>\d+)/images/(?P<image_id>\d+)/comments/(?P<comment_id>\d+)/?$',CommentDetailAPIView.as_view(), name='profile-album-image-comment'),
+    url(r'(?P<pk>\d+)/albums/(?P<album_id>\d+)/images/(?P<image_id>\d+)/comments/create/?$', CreateCommentAPI.as_view(),name='profile-album-image-comments-create'),
+    url(r'(?P<pk>\d+)/albums/(?P<album_id>\d+)/images/(?P<image_id>\d+)/comments/?$', GetCommentsAPI.as_view(),name='profile-album-image-comments'),
 
     url(r'(?P<pk>\d+)/albums/(?P<album_id>\d+)/images/(?P<image_id>\d+)/likes/(?P<like_id>\d+)/?$', LikeDetailAPIView.as_view(),name='profile-album-image-like'),
     url(r'(?P<pk>\d+)/albums/(?P<album_id>\d+)/images/(?P<image_id>\d+)/likes/create/?$', CreateLikeAPI.as_view(),name='profile-album-image-likes-create'),

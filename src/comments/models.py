@@ -5,8 +5,8 @@ from django.urls import reverse
 User = settings.AUTH_USER_MODEL
 
 class Comment(models.Model):
-    owner     = models.OneToOneField("profiles.Profile")
-    image     = models.OneToOneField("images.Image")
+    owner     = models.ForeignKey("profiles.Profile", unique=False)
+    image     = models.ForeignKey("images.Image", unique=False)
     content   = models.TextField(max_length=500, blank=False, null=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated   = models.DateTimeField(auto_now=True)

@@ -12,7 +12,7 @@ User = settings.AUTH_USER_MODEL
 class Profile(models.Model):
     user            = models.OneToOneField(User)
     albums          = models.ManyToManyField("albums.Album", blank=True)
-    commented       = models.ManyToManyField("comments.Comment", blank=True)
+    commented       = models.ManyToManyField("comments.Comment", blank=True, unique=False)
     liked           = models.ManyToManyField("likes.Like", blank=True)
     profile_picture = models.ImageField( blank=True, null=True, upload_to='profile_pics')
     timestamp       = models.DateTimeField(auto_now_add=True)
