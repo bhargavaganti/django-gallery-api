@@ -2,6 +2,9 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 from src.images.models import Image
 
+from src.albums.api.serializers import AlbumSerializer
+
+
 class ImageSerializer(ModelSerializer):
     """
 
@@ -14,6 +17,7 @@ class ImageSerializer(ModelSerializer):
             'id',
             'name',
             'description',
+            'album',
             'image',
             'tags',
             'is_public',
@@ -29,12 +33,18 @@ class CreateImageSerializer(ModelSerializer):
     """
 
     """
+    # album = AlbumSerializer()
+    # album = SerializerMethodField()
+
     class Meta:
         model = Image
         fields = [
+            'album',
             'image',
             'name',
             'description',
             'is_public',
             'tags'
         ]
+
+

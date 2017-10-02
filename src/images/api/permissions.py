@@ -9,11 +9,8 @@ class IsOwnerOrReadOnly(BasePermission):
     my_safe_methods = ['GET', 'PUT']
 
     # Ако има право присутпа крајњој тачки (end-point-у)
-    def has_permission(self, request, view):
-        print(f"Built-in safe methods: {SAFE_METHODS}")
-        if request.method in self.my_safe_methods:
-            return True
-        return False
+    # def has_permission(self, request, view):
+    #    pass
 
     # Ако има право приступа објекту
     def has_object_permission(self, request, view, obj):
@@ -23,4 +20,4 @@ class IsOwnerOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         print(f"request user is: {str(request.user)} and obj user is: {str(owner)}")
-        return owner == request.user
+        return owner == request.user or request.user.is_superuser

@@ -1,3 +1,4 @@
+from rest_framework.mixins import UpdateModelMixin, DestroyModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .permissions import IsOwnerOrReadOnly
@@ -23,15 +24,6 @@ class GetImagesAPI(ListAPIView):
         return queryset_list
 
 
-class GetImageAPI(RetrieveAPIView):
-    """
-
-    """
-    queryset = Image.objects.all()
-    serializer_class = ImageSerializer
-    # lookup_field = 'name' # ово се може користити уместо pk, дакле уместо albums/1 може albums/ime-albuma
-
-
 class CreateImageAPI(CreateAPIView):
     """
 
@@ -45,24 +37,17 @@ class CreateImageAPI(CreateAPIView):
     #     profile = Profile.objects.get(user=self.request.user)
     #     serializer.save(owner=profile)
 
-class UpdateImageAPI(RetrieveUpdateAPIView):
-    """
 
-    """
-    queryset = Image.objects.all()
-    serializer_class = ImageSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-
-    # FIXME: размисли да ли ово стављати
-    # def perform_create(self, serializer):
-    #     profile = Profile.objects.get(user=self.request.user)
-    #     serializer.save(owner=profile)
-
-
-class DeleteImageAPI(DestroyAPIView):
+class ImageDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
 
     """
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
