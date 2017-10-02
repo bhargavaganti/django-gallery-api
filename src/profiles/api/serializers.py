@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'username', 'email', 'password', 'is_active')
-        extra_kwargs = {"password": {"write_only": True} }
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         user = User.objects.create(
@@ -35,14 +35,12 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-
-
 class ProfileSerializer(ModelSerializer):
     """
 
     """
-    user = UserSerializer()
-    profile_picture = SerializerMethodField()
+    # user = UserSerializer()
+    # profile_picture = SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -56,8 +54,6 @@ class ProfileSerializer(ModelSerializer):
         read_only_fields = [
             'id', 'timestamp', 'updated', 'email'
         ]
-
-
 
     def get_profile_picture(self, obj):
         return obj.profile_picture.url

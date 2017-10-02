@@ -3,11 +3,16 @@ from rest_framework.serializers import ModelSerializer
 from src.albums.models import Album
 from src.images.models import Image
 
+from src.profiles.api.serializers import UserSerializer
+
+from src.profiles.api.serializers import ProfileSerializer
+
+
 class AlbumSerializer(ModelSerializer):
     """
 
     """
-    owner = SerializerMethodField()
+    owner = ProfileSerializer()
     # images = SerializerMethodField() # TODO: image серијализатор ће бити имплементиран у својој класи
 
     class Meta:
@@ -23,8 +28,6 @@ class AlbumSerializer(ModelSerializer):
             'updated'
         ]
 
-    def get_owner(self, obj):
-        return str(obj.owner.user.username)
 
     # def get_images(self, obj):
     #     return Image.objects.filter(album=obj)

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import status
+from rest_framework.decorators import detail_route
 from rest_framework.mixins import UpdateModelMixin, DestroyModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -46,6 +47,7 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
     queryset = Profile.objects.all()
     serializer_class = ProfileUpdateSerializer
     permission_classes = [IsAdminOrOwner, ]
+
 
     def put(self, request, *args, **kwargs):
         # instance = Profile.objects.get(pk=kwargs.get("pk"))

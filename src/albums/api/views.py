@@ -1,6 +1,7 @@
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin, CreateModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.response import Response
 
 from src.gallery.helpers import log
 from .permissions import IsOwnerOrReadOnly
@@ -10,6 +11,7 @@ from .serializers import AlbumSerializer, CreateAlbumSerializer
 from src.albums.models import Album
 from src.profiles.models import Profile
 from src.profiles.api.permissions import IsAdminOrOwner
+import ipdb
 
 
 class GetAlbumsAPI(ListAPIView):
@@ -24,7 +26,7 @@ class GetAlbumsAPI(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         pk = self.kwargs.get("pk")
-        if pk:
+        if not pk:
             queryset_list = Album.objects.filter(owner__pk=pk)
         queryset_list = Album.objects.all()
         return queryset_list
@@ -50,6 +52,36 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAdminUser]
+
+    # def get(self, request, *args, **kwargs):
+    #     profile = Profile.objects.get(pk=self.kwargs.get("pk"))
+    #     album = None
+    #     if not profile:
+    #         return Response({"status":"fail", "code": 404})
+    #
+    #     album_id = self.kwargs.get("album_id")
+    #     if not album_id:
+    #         album = Response(self.get_object())
+    #     if self.request.user.is_superuser:
+    #         album = Response(Album.objects.get(pk=album_id))
+    #     album = profile.albums.filter(pk=album_id)
+    #     log(album)
+    #     serializer = (album)
+    #     return Response(serializer.data)
+
+    def get_object(self):
+        profile_id = self.kwargs.get("pk")
+        profile = Profile.objects.get(pk=profile_id)
+        album = None
+        if not profile:
+            log("no profile")
+            return Response({"status:": "fail"}, status=404)
+        album_id = self.kwargs.get("album_id")
+        if self.request.user.is_superuser:
+            album = Album.objects.get(pk=album_id)
+        else:
+            album = profile.albums.get(pk=album_id)
+        return album
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
