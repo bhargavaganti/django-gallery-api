@@ -5,7 +5,7 @@ from django.urls import reverse
 User = settings.AUTH_USER_MODEL
 
 class Like(models.Model):
-    owner     = models.OneToOneField("profiles.Profile")
+    owner     = models.ForeignKey("profiles.Profile", unique=False)
     image     = models.OneToOneField("images.Image")
     timestamp = models.DateTimeField(auto_now_add=True)
     updated   = models.DateTimeField(auto_now=True)
