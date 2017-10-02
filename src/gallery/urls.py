@@ -8,7 +8,6 @@ from django.conf.urls import url
 from src.profiles.api.views import GetProfilesAPI
 from src.albums.api.views import GetAlbumsAPI
 
-
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # url(r'^albums/', include('src.albums.urls', namespace='albums')),
@@ -18,7 +17,9 @@ urlpatterns = [
     url(r'^api/images/', include("src.images.api.urls", namespace='images-api')),
     url(r'^api/tags/', include("src.tags.api.urls", namespace='tags-api')),
     url(r'^api/profiles/', include("src.profiles.api.urls", namespace='profiles-api')),
+
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
