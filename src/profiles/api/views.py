@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import status
+from rest_framework.mixins import UpdateModelMixin, DestroyModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
@@ -29,15 +30,6 @@ class GetProfilesAPI(ListAPIView):
         return queryset_list
 
 
-class GetProfileAPI(RetrieveAPIView):
-    """
-
-    """
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    # lookup_field = 'name' # ово се може користити уместо pk, дакле уместо albums/1 може albums/ime-albuma
-
-
 class CreateProfileAPI(CreateAPIView):
     """
 
@@ -47,7 +39,7 @@ class CreateProfileAPI(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class UpdateProfileAPI(RetrieveUpdateAPIView):
+class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
 
     """
@@ -55,30 +47,9 @@ class UpdateProfileAPI(RetrieveUpdateAPIView):
     serializer_class = ProfileUpdateSerializer
     permission_classes = [IsAdminOrOwner, ]
 
-    #
-    # def update(self, request, *args, **kwargs):
-    #     print("\n\nInside update")
-    #     serializer = ProfileSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     print(serializer.errors)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
-    # def put(self, request, *args, **kwargs):
-    #     print("\n\nInside put")
-    #     serializer = ProfileUpdateSerializer(self.get_object(),data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     print(serializer.errors)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     # добршити ажурирање профила
-
-
     def put(self, request, *args, **kwargs):
-        instance = Profile.objects.get(pk=kwargs.get("pk"))
+        # instance = Profile.objects.get(pk=kwargs.get("pk"))
+        instance = self.get_object()
         data = request.data
         if not instance:
             return Response(data={"status": "fail", "code": 404, "messages": ["No profile with that id"]})
@@ -95,11 +66,5 @@ class UpdateProfileAPI(RetrieveUpdateAPIView):
         instance.save()
         return instance
 
-
-class DeleteProfileAPI(DestroyAPIView):
-    """
-
-    """
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    permission_classes = [IsAdminOrOwner, ]
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
