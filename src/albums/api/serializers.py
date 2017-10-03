@@ -39,6 +39,7 @@ class CreateAlbumSerializer(ModelSerializer):
     class Meta:
         model = Album
         fields = [
+            'id',
             'owner',
             'name',
             'description',
