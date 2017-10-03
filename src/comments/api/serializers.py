@@ -11,8 +11,8 @@ class CommentSerializer(ModelSerializer):
     """
 
     """
-    image = SerializerMethodField()
-    owner = ProfileSerializer()
+    # image = SerializerMethodField()
+    # owner = ProfileSerializer()
 
     # image = SerializerMethodField() # TODO: image серијализатор ће бити имплементиран у својој класи
 
@@ -26,11 +26,11 @@ class CommentSerializer(ModelSerializer):
             'timestamp',
             'updated'
         ]
-
-    def get_image(self, obj):
-        images_qs = Image.objects.get(pk=obj.image.id)
-        images = ImageSerializer(images_qs).data
-        return images
+    #
+    # def get_image(self, obj):
+    #     images_qs = Image.objects.get(pk=obj.image.id)
+    #     images = ImageSerializer(images_qs).data
+    #     return images
 
 
 class CreateCommentSerializer(ModelSerializer):

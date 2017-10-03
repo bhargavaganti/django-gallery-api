@@ -1,14 +1,18 @@
 import ipdb
+from django.http import JsonResponse
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView, \
+    get_object_or_404
 from rest_framework.response import Response
 
 from .serializers import CommentSerializer, CreateCommentSerializer
 from src.comments.models import Comment
 from src.profiles.models import Profile
 from src.gallery.helpers import log
+from src.albums.models import Album
+from src.images.models import Image
 
 
 class GetCommentsAPI(ListAPIView):
@@ -53,10 +57,26 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
     permission_classes = [IsAdminUser]
 
     def get_object(self):
+        profile_id = self.kwargs.get("profile_id")
+        profile = Profile.objects.get(pk=profile_id)
+        if not profile:
+            return JsonResponse({"status":"fail","code":404})
+
+        album_id = self.kwargs.get("album_id")
+        album = Album.objects.get(pk=album_id)
+        if not album:
+            return JsonResponse({"status": "fail", "code": 404})
+
+        image_id = self.kwargs.get("image_id")
+        image = Image.objects.get(pk=image_id)
+        if not image:
+            return JsonResponse({"status": "fail", "code": 404})
+
         comment_id = self.kwargs.get("comment_id")
         if not comment_id:
-            return Response({"status": "fail"}, status=404)
-        comment = Comment.objects.get(pk=comment_id)
+            return JsonResponse({"status": "fail", "code": 404})
+
+        comment = get_object_or_404(queryset=image.comments.all(), pk=comment_id)
         return comment
 
     def put(self, request, *args, **kwargs):
