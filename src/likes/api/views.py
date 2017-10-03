@@ -1,7 +1,8 @@
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView, \
+    get_object_or_404
 from rest_framework.response import Response
 
 from .serializers import LikeSerializer, CreateLikeSerializer
@@ -18,12 +19,11 @@ class GetLikesAPI(ListAPIView):
     filter_backends = [SearchFilter]  # ово мора бити низ!
 
     def get_queryset(self, *args, **kwargs):
-        # get all Likes from image, if is set
         image_id = self.kwargs.get("image_id")
         if not image_id:
             queryset_list = Like.objects.all()
         queryset_list = Like.objects.filter(image__pk=image_id)
-        if queryset_list.count() != 1:
+        if queryset_list.count() < 1:
             return Response({"status": "success"}, status=200)
         return queryset_list
 
@@ -54,7 +54,7 @@ class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
         like_id = self.kwargs.get("like_id")
         if not like_id:
             return Response({"status": "fail"}, status=404)
-        like = Like.objects.get(pk=like_id)
+        like = get_object_or_404(Like,pk=like_id)
         return like
 
     def put(self, request, *args, **kwargs):
