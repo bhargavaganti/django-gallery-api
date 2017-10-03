@@ -46,8 +46,7 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileUpdateSerializer
-    permission_classes = [IsAdminOrOwner, ]
-
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrOwner, ]
 
     def put(self, request, *args, **kwargs):
         # instance = Profile.objects.get(pk=kwargs.get("pk"))
