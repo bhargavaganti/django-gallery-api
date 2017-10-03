@@ -9,7 +9,11 @@ class ImageSerializer(ModelSerializer):
     """
 
     """
-    image = SerializerMethodField()
+    # FIXME: у albums/1/images/ нема података о лајковима и коментарима
+
+    # image = SerializerMethodField()
+    # comments = SerializerMethodField()
+    # likes = SerializerMethodField()
 
     class Meta:
         model = Image
@@ -20,13 +24,22 @@ class ImageSerializer(ModelSerializer):
             'album',
             'image',
             'tags',
+            'comments',
+            'likes',
             'is_public',
             'timestamp',
             'updated'
         ]
 
-    def get_image(self, obj):
-        return obj.image.url
+    # def get_image(self, obj):
+    #     return obj.image.url
+    #
+    # def get_comments(self, obj):
+    #     return obj.comments.all()
+
+
+    def get_likes(self, obj):
+        return obj.likes.all()
 
 
 class CreateImageSerializer(ModelSerializer):
