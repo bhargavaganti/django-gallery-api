@@ -23,8 +23,6 @@ class GetLikesAPI(ListAPIView):
         if not image_id:
             queryset_list = Like.objects.all()
         queryset_list = Like.objects.filter(image__pk=image_id)
-        if queryset_list.count() < 1:
-            return Response({"status": "success"}, status=200)
         return queryset_list
 
 

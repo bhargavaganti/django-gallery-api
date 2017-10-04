@@ -2,7 +2,6 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 from src.likes.models import Like
 
-from src.images.api.serializers import ImageSerializer
 from src.images.models import Image
 
 from src.profiles.api.serializers import ProfileSerializer

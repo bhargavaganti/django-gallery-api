@@ -4,6 +4,9 @@ from src.images.models import Image
 
 from src.albums.api.serializers import AlbumSerializer
 
+from src.comments.api.serializers import CommentSerializer
+from src.likes.api.serializers import LikeSerializer
+
 
 class ImageSerializer(ModelSerializer):
     """
@@ -12,8 +15,8 @@ class ImageSerializer(ModelSerializer):
     # FIXME: у albums/1/images/ нема података о лајковима и коментарима
 
     # image = SerializerMethodField()
-    # comments = SerializerMethodField()
-    # likes = SerializerMethodField()
+    comments = SerializerMethodField()
+    likes = SerializerMethodField()
 
     class Meta:
         model = Image
@@ -31,15 +34,16 @@ class ImageSerializer(ModelSerializer):
             'updated'
         ]
 
-    # def get_image(self, obj):
-    #     return obj.image.url
-    #
-    # def get_comments(self, obj):
-    #     return obj.comments.all()
+    def get_image(self, obj):
+        return obj.image.url
 
+    def get_comments(self, obj):
+        from src.comments.api.serializers import CommentSerializer
+        return CommentSerializer(obj.comments.all(), many=True).data
 
     def get_likes(self, obj):
-        return obj.likes.all()
+        from src.likes.api.serializers import LikeSerializer
+        return LikeSerializer(obj.likes.all(),many=True).data
 
 
 class CreateImageSerializer(ModelSerializer):

@@ -5,16 +5,18 @@ from django.urls import reverse
 User = settings.AUTH_USER_MODEL
 
 class Like(models.Model):
-    owner     = models.ForeignKey("profiles.Profile", unique=False)
-    image     = models.OneToOneField("images.Image")
+    owner     = models.ManyToManyField("profiles.Profile")
+    image     = models.ManyToManyField("images.Image")
     timestamp = models.DateTimeField(auto_now_add=True)
     updated   = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.owner.user.email + " - " + self.image.name
+        # return self.owner.first()
+        return "like"
 
     def __unicode__(self):
-        return self.owner.user.email + " - " + self.image.name
+        return "like"
+
 
     def get_absolute_url(self): #get_absolute_url
         return reverse('likes:detail', kwargs={'pk': self.pk})

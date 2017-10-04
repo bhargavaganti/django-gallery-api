@@ -57,7 +57,7 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
     permission_classes = [IsAdminUser]
 
     def get_object(self):
-        profile_id = self.kwargs.get("profile_id")
+        profile_id = self.kwargs.get("pk")
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
             return JsonResponse({"status":"fail","code":404})
