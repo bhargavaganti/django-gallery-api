@@ -4,9 +4,11 @@ from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf.urls import url
+from django.http import HttpResponse
 
 from src.profiles.api.views import GetProfilesAPI
 from src.albums.api.views import GetAlbumsAPI
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

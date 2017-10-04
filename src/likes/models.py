@@ -17,6 +17,5 @@ class Like(models.Model):
     def __unicode__(self):
         return "like"
 
-
     def get_absolute_url(self): #get_absolute_url
         return reverse('likes:detail', kwargs={'pk': self.pk})

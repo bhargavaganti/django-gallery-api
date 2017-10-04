@@ -1,3 +1,4 @@
+import ipdb
 from rest_framework.decorators import detail_route
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
@@ -7,7 +8,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView,
     get_object_or_404
 from rest_framework.response import Response
 
-from .serializers import TagSerializer, CreateTagSerializer
+from .serializers import TagSerializer, CreateTagSerializer, DetailedTagSerializer
 from src.tags.models import Tag
 from src.profiles.models import Profile
 from src.gallery.helpers import log
@@ -27,11 +28,11 @@ class GetTagsAPI(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         # get all tags from image, if is set
+        # ipdb.set_trace()
         image_id = self.kwargs.get("image_id")
         if not image_id:
             queryset_list = Tag.objects.all()
-        queryset_list = Tag.objects.filter(images__pk=image_id)
-
+        queryset_list = Image.objects.get(pk=image_id).tags.all()
         return queryset_list
 
 
@@ -54,7 +55,7 @@ class TagDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
     """
     queryset = Tag.objects.all()
-    serializer_class = TagSerializer
+    serializer_class = DetailedTagSerializer
     permission_classes = [IsAdminUser]
 
     def get_object(self):

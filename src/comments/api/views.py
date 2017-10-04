@@ -7,7 +7,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView,
     get_object_or_404
 from rest_framework.response import Response
 
-from .serializers import CommentSerializer, CreateCommentSerializer
+from .serializers import CommentSerializer, CreateCommentSerializer, DetailedCommentSerializer
 from src.comments.models import Comment
 from src.profiles.models import Profile
 from src.gallery.helpers import log
@@ -23,14 +23,27 @@ class GetCommentsAPI(ListAPIView):
     filter_backends = [SearchFilter]  # ово мора бити низ!
 
     def get_queryset(self, *args, **kwargs):
-        # ipdb.set_trace()
-        # get all Comments from image, if is set
+       # ipdb.set_trace(context=5)
+        profile_id = self.kwargs.get("pk")
+        if not profile_id:
+            return Response({"status": "fail"}, status=403)
+
+        profile = Profile.objects.get(pk=profile_id)
+
+        album_id = self.kwargs.get("album_id")
+        if not album_id:
+            return Response({"status": "fail"}, status=403)
+        album = Album.objects.get(pk=album_id, owner_id=profile_id)
+
+        if not album:
+            return Response({"status": "fail"}, status=404)
+
         image_id = self.kwargs.get("image_id")
         if not image_id:
-            queryset_list = Comment.objects.all()
+            return Response({"status": "fail"}, status=403)
+        image = Image.objects.get(pk=image_id, album_id=album_id)
+
         queryset_list = Comment.objects.filter(image__pk=image_id)
-        if queryset_list.count() < 1:
-            return Response({"status": "success"}, status=200)
         return queryset_list
 
 
@@ -53,7 +66,7 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
 
     """
     queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    serializer_class = DetailedCommentSerializer
     permission_classes = [IsAdminUser]
 
     def get_object(self):
@@ -76,7 +89,7 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         if not comment_id:
             return JsonResponse({"status": "fail", "code": 404})
 
-        comment = get_object_or_404(queryset=image.comments.all(), pk=comment_id)
+        comment = get_object_or_404(queryset=Comment.objects.all(), pk=comment_id)
         return comment
 
     def put(self, request, *args, **kwargs):

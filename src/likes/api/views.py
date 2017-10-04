@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -9,6 +10,7 @@ from .serializers import LikeSerializer, CreateLikeSerializer
 from src.likes.models import Like
 from src.profiles.models import Profile
 from src.gallery.helpers import log
+from src.images.models import Image
 
 
 class GetLikesAPI(ListAPIView):
@@ -21,7 +23,10 @@ class GetLikesAPI(ListAPIView):
     def get_queryset(self, *args, **kwargs):
         image_id = self.kwargs.get("image_id")
         if not image_id:
-            queryset_list = Like.objects.all()
+            return JsonResponse({"status": "fail", "code": 403}, safe=True)
+        image = Image.objects.get(pk=image_id)
+        if not image:
+            return JsonResponse({"status": "fail", "code": 404}, safe=True)
         queryset_list = Like.objects.filter(image__pk=image_id)
         return queryset_list
 

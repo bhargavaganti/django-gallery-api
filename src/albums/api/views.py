@@ -9,11 +9,11 @@ from .permissions import IsOwnerOrReadOnly
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView, \
     get_object_or_404
-from .serializers import AlbumSerializer, CreateAlbumSerializer
 from src.albums.models import Album
+from .serializers import AlbumSerializer, CreateAlbumSerializer, DetailedAlbumSerializer
 from src.profiles.models import Profile
 from src.profiles.api.permissions import IsAdminOrOwner
-
+import ipdb
 
 class GetAlbumsAPI(ListAPIView):
     """
@@ -27,17 +27,16 @@ class GetAlbumsAPI(ListAPIView):
     ordering_fields = '__all__'
 
     def get_queryset(self, *args, **kwargs):
-        #ipdb.set_trace()
+        # ipdb.set_trace()
         pk = self.kwargs.get("pk")
         if not pk:
-            queryset_list = Album.objects.all()
-        else:
-            profile = Profile.objects.get(pk=pk)
-            if not profile:
-                log("No profile")
-                return JsonResponse({"status":"fail", "code":404}, safe=True)
-            queryset_list = Album.objects.filter(owner__pk=pk)
-            log(queryset_list)
+            return JsonResponse({"status": "fail", "code": 403}, safe=True)
+
+        profile = Profile.objects.get(pk=pk)
+        if not profile:
+            return JsonResponse({"status":"fail", "code":404}, safe=True)
+
+        queryset_list = Album.objects.filter(owner_id=pk)
         return queryset_list
 
 
@@ -49,9 +48,9 @@ class CreateAlbumAPI(CreateAPIView):
     serializer_class = CreateAlbumSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        profile = Profile.objects.get(user=self.request.user)
-        serializer.save(owner=profile)
+    # def perform_create(self, serializer):
+    #     profile = Profile.objects.get(user=self.request.user) # FIXME: можда је боље укључити у продукцији
+    #     serializer.save(owner=profile)
 
 
 class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
@@ -59,7 +58,7 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
     """
     queryset = Album.objects.all()
-    serializer_class = AlbumSerializer
+    serializer_class = DetailedAlbumSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAdminUser]
 
     def get_object(self):
@@ -69,12 +68,11 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
         if not profile:
             return JsonResponse({"status:": "fail"}, safe=True)
+
         album_id = self.kwargs.get("album_id")
 
-        if self.request.user.is_superuser:
-            album = get_object_or_404(Album, pk=album_id)
-        else:
-            album = profile.albums.get(pk=album_id)
+        # album = Album.objects.get(pk=album_id, owner_id=profile_id)
+        album = get_object_or_404(Album, pk=album_id, owner_id=profile_id)
         return album
 
     def put(self, request, *args, **kwargs):

@@ -41,6 +41,8 @@ INSTALLED_APPS = [
 
     #third party
     'rest_framework',
+    # 'django_faker',
+    'django_seed',
     # 'crispy_forms',
 
     'src.profiles',
@@ -148,3 +150,5 @@ STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "media")
 
+FAKER_LOCALE = None     # settings.LANGUAGE_CODE is loaded
+FAKER_PROVIDERS = None  # faker.DEFAULT_PROVIDERS is loaded (all)

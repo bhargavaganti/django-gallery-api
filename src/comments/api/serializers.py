@@ -10,6 +10,7 @@ class CommentSerializer(ModelSerializer):
     """
 
     """
+
     # image = SerializerMethodField()
     # owner = ProfileSerializer()
 
@@ -25,17 +26,48 @@ class CommentSerializer(ModelSerializer):
             'timestamp',
             'updated'
         ]
+        #
+        # def get_image(self, obj):
+        #     images_qs = Image.objects.get(pk=obj.image.id)
+        #     images = ImageSerializer(images_qs).data
+        #     return images
+
+
+class DetailedCommentSerializer(ModelSerializer):
+    """
+
+    """
+    image = SerializerMethodField()
+    # owner = SerializerMethodField()
+    # owner = ProfileSerializer()
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id',
+            'owner',
+            'image',
+            'content',
+            'timestamp',
+            'updated'
+        ]
+
     #
-    # def get_image(self, obj):
-    #     images_qs = Image.objects.get(pk=obj.image.id)
-    #     images = ImageSerializer(images_qs).data
-    #     return images
+    def get_image(self, obj):
+        from src.images.api.serializers import ImageSerializer
+        images_qs = obj.image.get()
+        images = ImageSerializer(images_qs).data
+        return images
+
+    # def get_owner(self, obj):
+    #     return ProfileSerializer(obj.owner.all()).data
 
 
 class CreateCommentSerializer(ModelSerializer):
     """
 
     """
+
     # image = SerializerMethodField()
     # owner = ProfileSerializer()
 
@@ -48,5 +80,5 @@ class CreateCommentSerializer(ModelSerializer):
             'timestamp',
         ]
 
-    # def get_image(self, obj):
-    #     return obj.image.id
+        # def get_image(self, obj):
+        #     return obj.image.id
