@@ -10,6 +10,7 @@ class TagSerializer(ModelSerializer):
     """
 
     """
+
     # images = SerializerMethodField()
 
     class Meta:
@@ -17,17 +18,15 @@ class TagSerializer(ModelSerializer):
         fields = [
             'id',
             'name',
-            'images',
+            # 'images',
             'timestamp',
             'updated'
         ]
 
-    # def get_images(self, obj):
-    #     images_qs = Image.objects.all()
-    #     images = ImageSerializer(images_qs, many=True).data
-    #     return images
-
-
+        # def get_images(self, obj):
+        #     images_qs = Image.objects.all()
+        #     images = ImageSerializer(images_qs, many=True).data
+        #     return images
 
 
 class DetailedTagSerializer(ModelSerializer):
@@ -51,10 +50,12 @@ class DetailedTagSerializer(ModelSerializer):
         images = ImageSerializer(images_qs, many=True).data
         return images
 
+
 class CreateTagSerializer(ModelSerializer):
     """
 
     """
+
     class Meta:
         model = Tag
         fields = [
@@ -62,5 +63,3 @@ class CreateTagSerializer(ModelSerializer):
             'images',
             'timestamp',
         ]
-
-

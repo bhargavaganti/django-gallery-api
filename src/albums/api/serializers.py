@@ -49,7 +49,8 @@ class DetailedAlbumSerializer(ModelSerializer):
         ]
 
     def get_images(self, obj):
-        return DetailedImageSerializer(obj.images.all(), many=True).data
+        from src.images.api.serializers import ImageSerializer
+        return ImageSerializer(Image.objects.filter(album_id=obj.id), many=True).data
 
 
 class CreateAlbumSerializer(ModelSerializer):

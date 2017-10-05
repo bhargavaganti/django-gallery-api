@@ -6,7 +6,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView,
     get_object_or_404
 from rest_framework.response import Response
 
-from .serializers import LikeSerializer, CreateLikeSerializer
+from .serializers import LikeSerializer, CreateLikeSerializer, DetailedLikeSerializer
 from src.likes.models import Like
 from src.profiles.models import Profile
 from src.gallery.helpers import log
@@ -50,14 +50,14 @@ class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
     """
     queryset = Like.objects.all()
-    serializer_class = LikeSerializer
-    permission_classes = [IsAdminUser]
+    serializer_class = DetailedLikeSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
         like_id = self.kwargs.get("like_id")
         if not like_id:
             return Response({"status": "fail"}, status=404)
-        like = get_object_or_404(Like,pk=like_id)
+        like = get_object_or_404(Like, pk=like_id)
         return like
 
     def put(self, request, *args, **kwargs):

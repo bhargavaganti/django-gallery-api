@@ -30,7 +30,8 @@ class GetAlbumsAPI(ListAPIView):
         # ipdb.set_trace()
         pk = self.kwargs.get("pk")
         if not pk:
-            return JsonResponse({"status": "fail", "code": 403}, safe=True)
+            return Album.objects.all()
+            # return JsonResponse({"status": "fail", "code": 403}, safe=True)
 
         profile = Profile.objects.get(pk=pk)
         if not profile:
