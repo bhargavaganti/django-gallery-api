@@ -23,4 +23,4 @@ class Image(models.Model):
         return self.name
 
     def get_absolute_url(self): # get_absolute_url
-        return reverse('images:detail', kwargs={'pk': self.pk})
+        return reverse('images:detail', kwargs={'image_id': self.pk})

@@ -6,11 +6,10 @@ class IsOwnerOrReadOnly(BasePermission):
 
     """
     message = "Морате бити власник да бисте могли мењати информације."
-    my_safe_methods = ['GET', 'PUT']
+    my_safe_methods = ['GET', 'POST', 'PUT', 'DELETE']
 
     # Ако има право присутпа крајњој тачки (end-point-у)
     def has_permission(self, request, view):
-        print(f"Built-in safe methods: {SAFE_METHODS}")
         if request.method in self.my_safe_methods:
             return True
         return False

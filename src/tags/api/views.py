@@ -8,6 +8,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView,
     get_object_or_404
 from rest_framework.response import Response
 
+from src.images.api.serializers import DetailedImageSerializer
 from .serializers import TagSerializer, CreateTagSerializer, DetailedTagSerializer
 from src.tags.models import Tag
 from src.profiles.models import Profile
@@ -23,17 +24,34 @@ class GetTagsAPI(ListAPIView):
     filter_backends = [SearchFilter]  # ово мора бити низ!
     search_fields = ('name',)
     ordering_fields = 'name'
+    permission_classes = [AllowAny]
 
     # lookup_field = 'tag'
 
     def get_queryset(self, *args, **kwargs):
-        # get all tags from image, if is set
-        # ipdb.set_trace()
         image_id = self.kwargs.get("image_id")
         if not image_id:
             queryset_list = Tag.objects.all()
+            return queryset_list
         queryset_list = Image.objects.get(pk=image_id).tags.all()
+        # queryset_list = Tag.objects.filter(images__pk=image_id)
         return queryset_list
+
+
+class TagImagesAPI(ListAPIView):
+    """
+
+    """
+    serializer_class = DetailedImageSerializer
+    filter_backends = [SearchFilter]  # ово мора бити низ!
+    search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
+    ordering_fields = '__all__'
+    lookup_field = 'image'
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        tag_id = self.kwargs.get("tag_id")
+        return Image.objects.filter(tags__pk=tag_id)
 
 
 class CreateTagAPI(CreateAPIView):
@@ -44,11 +62,6 @@ class CreateTagAPI(CreateAPIView):
     serializer_class = CreateTagSerializer
     permission_classes = [IsAuthenticated]
 
-    # FIXME: размисли да ли ово стављати
-    # def perform_create(self, serializer):
-    #     profile = Profile.objects.get(user=self.request.user)
-    #     serializer.save(owner=profile)
-
 
 class TagDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
@@ -56,14 +69,18 @@ class TagDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
     queryset = Tag.objects.all()
     serializer_class = DetailedTagSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser, IsAuthenticatedOrReadOnly]
 
     def get_object(self):
         image_id = self.kwargs.get("image_id")
         tag_id = self.kwargs.get("tag_id")
 
-        if not image_id or not tag_id:
-            return Response({"status": "fail"}, status=404)
+        if not image_id and not self.kwargs.get("profile_id") and not self.kwargs.get("album_id"):
+            if not tag_id:
+                return Response({"status": "fail"}, status=404)
+            else:
+                return get_object_or_404(Tag, pk=tag_id)
+
         image = Image.objects.get(pk=image_id)
         tag = get_object_or_404(Tag, pk=tag_id)
         return tag

@@ -1,10 +1,9 @@
 import ipdb
 from django.http import JsonResponse
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView, \
-    get_object_or_404
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, get_object_or_404
 from rest_framework.response import Response
 
 from .serializers import CommentSerializer, CreateCommentSerializer, DetailedCommentSerializer
@@ -21,10 +20,11 @@ class GetCommentsAPI(ListAPIView):
     """
     serializer_class = CommentSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
+    authentication_classes = [AllowAny]
 
     def get_queryset(self, *args, **kwargs):
        # ipdb.set_trace(context=5)
-        profile_id = self.kwargs.get("pk")
+        profile_id = self.kwargs.get("profile_id")
         if not profile_id:
             return Response({"status": "fail"}, status=403)
 
@@ -55,10 +55,9 @@ class CreateCommentAPI(CreateAPIView):
     serializer_class = CreateCommentSerializer
     permission_classes = [IsAuthenticated]
 
-    # FIXME: размисли да ли ово стављати
-    # def perform_create(self, serializer):
-    #     profile = Profile.objects.get(user=self.request.user)
-    #     serializer.save(owner=profile)
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(user=self.request.user)
+        serializer.save(owner=profile)
 
 
 class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
@@ -67,10 +66,10 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
     """
     queryset = Comment.objects.all()
     serializer_class = DetailedCommentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
-        profile_id = self.kwargs.get("pk")
+        profile_id = self.kwargs.get("profile_id")
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
             return JsonResponse({"status":"fail","code":404})
@@ -89,7 +88,7 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         if not comment_id:
             return JsonResponse({"status": "fail", "code": 404})
 
-        comment = get_object_or_404(queryset=Comment.objects.all(), pk=comment_id)
+        comment = get_object_or_404(queryset=Comment.objects.all(), pk=comment_id, image__pk=image_id)
         return comment
 
     def put(self, request, *args, **kwargs):

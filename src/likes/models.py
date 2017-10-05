@@ -18,4 +18,4 @@ class Like(models.Model):
         return "like"
 
     def get_absolute_url(self): #get_absolute_url
-        return reverse('likes:detail', kwargs={'pk': self.pk})
+        return reverse('likes:detail', kwargs={'like_id': self.pk})

@@ -4,14 +4,15 @@ from django.contrib import admin
 from src.tags.api.views import TagDetailAPIView
 
 from src.tags.api.views import GetTagsAPI
-from .views import GetImagesAPI, CreateImageAPI, ImageDetailAPIView
+from .views import GetImagesAPI, CreateImageAPI, ImageDetailAPIView, GetAllImages, GetImage
 
 urlpatterns = [
-    # url(r'(?P<image>\d+)/tags/(?P<tag>\d+)/?$', GetTagsAPI.as_view(), name='image-tag'),  # TODO: обриши имена
-    url(r'(?P<pk>\d+)/tags/?$', GetTagsAPI.as_view(), name='image-tags'),  # TODO: обриши имена
-    url(r'(?P<pk>\d+)/?$', ImageDetailAPIView.as_view(), name='detail'),  # TODO: обриши имена
+    # да ли направити све ове руте? лајкови, коментари?
+    url(r'(?P<image_id>\d+)/tags/(?P<tag_id>\d+)/?$', TagDetailAPIView.as_view(), name='image-tag'),  # TODO: обриши имена
+    url(r'(?P<image_id>\d+)/tags/?$', GetTagsAPI.as_view(), name='image-tags'),  # TODO: обриши имена
+    url(r'(?P<image_id>\d+)/?$', GetImage.as_view(), name='detail'),  # TODO: обриши имена
     url(r'create/?$', CreateImageAPI.as_view(), name='create'),
-    url(r'$', GetImagesAPI.as_view(), name='list')
+    url(r'$', GetAllImages.as_view(), name='list')
 ]
 
 

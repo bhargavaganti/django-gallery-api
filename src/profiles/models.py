@@ -25,7 +25,7 @@ class Profile(models.Model):
         return self.user.email
 
     def get_absolute_url(self): #get_absolute_url
-        return reverse('profiles:detail', kwargs={'pk': self.pk})
+        return reverse('profiles:detail', kwargs={'profile_id': self.pk})
 
     def get_all_images(self):
         pass

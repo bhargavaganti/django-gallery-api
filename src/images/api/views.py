@@ -15,6 +15,33 @@ from src.gallery.helpers import log
 import ipdb
 
 
+class GetAllImages(ListAPIView):
+    """
+
+    """
+    serializer_class = ImageSerializer
+    filter_backends = [SearchFilter]  # ово мора бити низ!
+    search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
+    ordering_fields = '__all__'
+    lookup_field = 'image'
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Image.objects.filter(album_id=self.kwargs.get("album_id")) or Image.objects.all()
+
+
+class GetImage(RetrieveAPIView):
+    """
+
+    """
+    queryset = Image.objects.all()
+    serializer_class = DetailedImageSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        return Image.objects.get(pk=self.kwargs.get("image_id"))
+
+
 class GetImagesAPI(ListAPIView):
     """
 
@@ -24,18 +51,28 @@ class GetImagesAPI(ListAPIView):
     search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
     ordering_fields = '__all__'
     lookup_field = 'image'
+    permission_classes = [AllowAny]
 
     def get_queryset(self, *args, **kwargs):
         # ipdb.set_trace()
-        profile_id = self.kwargs.get("pk")
+        profile_id = self.kwargs.get("profile_id")
         if not profile_id:
+            # return Image.objects.all()
             return Response({"status": "fail"}, status=403)
 
         profile = Profile.objects.get(pk=profile_id)
 
+        if not profile:
+            return Response({"status": "fail"}, status=404)
+
         album_id = self.kwargs.get("album_id")
         if not album_id:
+            # return Image.objects.all()
             return Response({"status": "fail"}, status=403)
+
+        album = Album.objects.get(pk=album_id, owner_id=profile_id)
+        if not album:
+            return Response({"status": "fail"}, status=404)
 
         queryset_list = Image.objects.filter(album_id=album_id)
         return queryset_list
@@ -49,11 +86,6 @@ class CreateImageAPI(CreateAPIView):
     serializer_class = CreateImageSerializer
     permission_classes = [IsAuthenticated]
 
-    # FIXME: размисли да ли ово стављати
-    # def perform_create(self, serializer):
-    #     profile = Profile.objects.get(user=self.request.user)
-    #     serializer.save(owner=profile)
-
 
 class ImageDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
@@ -61,7 +93,7 @@ class ImageDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
     queryset = Image.objects.all()
     serializer_class = DetailedImageSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [ IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly] # FIXME: testiraj
 
     def get_object(self):
         album_id = self.kwargs.get("album_id")

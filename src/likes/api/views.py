@@ -1,11 +1,13 @@
 from django.http import JsonResponse
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView, \
-    get_object_or_404
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, get_object_or_404
 from rest_framework.response import Response
 
+from src.albums.models import Album
+
+from src.albums.api.permissions import IsOwnerOrReadOnly
 from .serializers import LikeSerializer, CreateLikeSerializer, DetailedLikeSerializer
 from src.likes.models import Like
 from src.profiles.models import Profile
@@ -19,6 +21,7 @@ class GetLikesAPI(ListAPIView):
     """
     serializer_class = LikeSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
+    permission_classes = [AllowAny]
 
     def get_queryset(self, *args, **kwargs):
         image_id = self.kwargs.get("image_id")
@@ -39,10 +42,9 @@ class CreateLikeAPI(CreateAPIView):
     serializer_class = CreateLikeSerializer
     permission_classes = [IsAuthenticated]
 
-    # FIXME: размисли да ли ово стављати
-    # def perform_create(self, serializer):
-    #     profile = Profile.objects.get(user=self.request.user)
-    #     serializer.save(owner=profile)
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(user=self.request.user)
+        serializer.save(owner=profile)
 
 
 class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
@@ -51,13 +53,29 @@ class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
     queryset = Like.objects.all()
     serializer_class = DetailedLikeSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get_object(self):
+        profile_id = self.kwargs.get("profile_id")
+        profile = Profile.objects.get(pk=profile_id)
+        if not profile:
+            return JsonResponse({"status":"fail","code":404})
+
+        album_id = self.kwargs.get("album_id")
+        album = Album.objects.get(pk=album_id)
+        if not album:
+            return JsonResponse({"status": "fail", "code": 404})
+
+        image_id = self.kwargs.get("image_id")
+        image = Image.objects.get(pk=image_id)
+        if not image:
+            return JsonResponse({"status": "fail", "code": 404})
+
         like_id = self.kwargs.get("like_id")
         if not like_id:
-            return Response({"status": "fail"}, status=404)
-        like = get_object_or_404(Like, pk=like_id)
+            return JsonResponse({"status": "fail", "code": 404})
+
+        like = get_object_or_404(queryset=Like.objects.all(), pk=like_id, image__pk=image_id)
         return like
 
     def put(self, request, *args, **kwargs):

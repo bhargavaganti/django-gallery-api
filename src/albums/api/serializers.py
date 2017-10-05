@@ -39,9 +39,9 @@ class DetailedAlbumSerializer(ModelSerializer):
         model = Album
         fields = [
             'id',
-            'owner',
             'name',
             'description',
+            'owner',
             'images',
             'is_public',
             'timestamp',

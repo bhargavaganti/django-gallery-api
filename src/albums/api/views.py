@@ -27,17 +27,16 @@ class GetAlbumsAPI(ListAPIView):
     ordering_fields = '__all__'
 
     def get_queryset(self, *args, **kwargs):
-        # ipdb.set_trace()
-        pk = self.kwargs.get("pk")
-        if not pk:
+        profile_id = self.kwargs.get("profile_id")
+        if not profile_id:
             return Album.objects.all()
             # return JsonResponse({"status": "fail", "code": 403}, safe=True)
 
-        profile = Profile.objects.get(pk=pk)
+        profile = Profile.objects.get(pk=profile_id)
         if not profile:
             return JsonResponse({"status":"fail", "code":404}, safe=True)
 
-        queryset_list = Album.objects.filter(owner_id=pk)
+        queryset_list = Album.objects.filter(owner_id=profile_id)
         return queryset_list
 
 
@@ -49,9 +48,9 @@ class CreateAlbumAPI(CreateAPIView):
     serializer_class = CreateAlbumSerializer
     permission_classes = [IsAuthenticated]
 
-    # def perform_create(self, serializer):
-    #     profile = Profile.objects.get(user=self.request.user) # FIXME: можда је боље укључити у продукцији
-    #     serializer.save(owner=profile)
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(user=self.request.user) # TODO: тестирати
+        serializer.save(owner=profile)
 
 
 class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
@@ -60,20 +59,23 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
     queryset = Album.objects.all()
     serializer_class = DetailedAlbumSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminUser]
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
 
     def get_object(self):
-        profile_id = self.kwargs.get("pk")
-        profile = Profile.objects.get(pk=profile_id)
+        # ipdb.set_trace(context=5)
+        profile_id = self.kwargs.get("profile_id")
         album = None
-
-        if not profile:
-            return JsonResponse({"status:": "fail"}, safe=True)
 
         album_id = self.kwargs.get("album_id")
 
-        # album = Album.objects.get(pk=album_id, owner_id=profile_id)
-        album = get_object_or_404(Album, pk=album_id, owner_id=profile_id)
+        if not profile_id:
+            album = get_object_or_404(Album, pk=album_id)
+            return album
+            # return JsonResponse({"status:": "fail"}, safe=True)
+
+        profile = Profile.objects.get(pk=profile_id)
+        if profile:
+            album = get_object_or_404(Album, pk=album_id, owner_id=profile_id)
         return album
 
     def put(self, request, *args, **kwargs):
