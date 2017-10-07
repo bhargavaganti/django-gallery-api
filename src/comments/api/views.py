@@ -25,7 +25,10 @@ class GetCommentsAPI(ListAPIView):
     def get_queryset(self, *args, **kwargs):
        # ipdb.set_trace(context=5)
         profile_id = self.kwargs.get("profile_id")
+        image_id = self.kwargs.get("image_id")
         if not profile_id:
+            if image_id:
+                return Comment.objects.filter(image__pk=image_id)
             return Response({"status": "fail"}, status=403)
 
         profile = Profile.objects.get(pk=profile_id)
@@ -38,7 +41,6 @@ class GetCommentsAPI(ListAPIView):
         if not album:
             return Response({"status": "fail"}, status=404)
 
-        image_id = self.kwargs.get("image_id")
         if not image_id:
             return Response({"status": "fail"}, status=403)
         image = Image.objects.get(pk=image_id, album_id=album_id)
@@ -69,7 +71,17 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
+        # ipdb.set_trace(context=5)
         profile_id = self.kwargs.get("profile_id")
+        image_id = self.kwargs.get("image_id")
+        comment_id = self.kwargs.get("comment_id")
+
+        if not profile_id:
+            if image_id and comment_id:
+                return get_object_or_404(queryset=Comment.objects.all(), pk=comment_id, image__pk=image_id)
+            return JsonResponse({"status":"fail","code":403})
+
+
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
             return JsonResponse({"status":"fail","code":404})
@@ -79,12 +91,10 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         if not album:
             return JsonResponse({"status": "fail", "code": 404})
 
-        image_id = self.kwargs.get("image_id")
         image = Image.objects.get(pk=image_id)
         if not image:
             return JsonResponse({"status": "fail", "code": 404})
 
-        comment_id = self.kwargs.get("comment_id")
         if not comment_id:
             return JsonResponse({"status": "fail", "code": 404})
 

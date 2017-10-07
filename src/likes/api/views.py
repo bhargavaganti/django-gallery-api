@@ -1,3 +1,4 @@
+import ipdb
 from django.http import JsonResponse
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
 from rest_framework.filters import SearchFilter
@@ -56,7 +57,14 @@ class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get_object(self):
+        # ipdb.set_trace(context=5)
         profile_id = self.kwargs.get("profile_id")
+        image_id = self.kwargs.get("image_id")
+        like_id = self.kwargs.get("like_id")
+
+        if not profile_id and image_id and like_id:
+            return get_object_or_404(Like, pk=like_id)
+
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
             return JsonResponse({"status":"fail","code":404})
@@ -66,12 +74,10 @@ class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
         if not album:
             return JsonResponse({"status": "fail", "code": 404})
 
-        image_id = self.kwargs.get("image_id")
         image = Image.objects.get(pk=image_id)
         if not image:
             return JsonResponse({"status": "fail", "code": 404})
 
-        like_id = self.kwargs.get("like_id")
         if not like_id:
             return JsonResponse({"status": "fail", "code": 404})
 

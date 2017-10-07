@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # url(r'^albums/', include('src.albums.urls', namespace='albums')),
-    url(r'^tags/', include('src.tags.urls', namespace='tags')),
+    # url(r'^tags/', include('src.tags.urls', namespace='tags')),
     url(r'^api/auth/', include("src.authentication.api.urls", namespace='auth')),
     url(r'^api/albums/', include("src.albums.api.urls", namespace='albums-api')),
     url(r'^api/images/', include("src.images.api.urls", namespace='images-api')),
