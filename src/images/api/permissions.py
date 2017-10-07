@@ -13,7 +13,10 @@ class IsOwnerOrReadOnly(BasePermission):
     # Ако има право приступа објекту
     def has_object_permission(self, request, view, obj):
         album_owner = Album.objects.get(pk=obj.album.pk) # добављање једног објекта по параметру
+        if not album_owner:
+            return False
         owner = album_owner.owner.user
+
         log(album_owner)
 
         print(f"request user is: {str(request.user)} and obj user is: {str(owner)}")

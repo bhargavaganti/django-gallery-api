@@ -17,7 +17,7 @@ class ImageSerializer(ModelSerializer):
             'id',
             'name',
             'description',
-            'album',
+            'album_id',
             'image',
             # 'tags',
             # 'comments',

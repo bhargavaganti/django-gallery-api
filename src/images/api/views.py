@@ -57,7 +57,6 @@ class GetImagesAPI(ListAPIView):
         # ipdb.set_trace()
         profile_id = self.kwargs.get("profile_id")
         if not profile_id:
-            # return Image.objects.all()
             return Response({"status": "fail"}, status=403)
 
         profile = Profile.objects.get(pk=profile_id)
@@ -112,3 +111,42 @@ class ImageDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class GetTopImages(ListAPIView):
+    top_likes = 2
+    serializer_class = ImageSerializer
+    filter_backends = [SearchFilter]  # ово мора бити низ!
+    search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
+    ordering_fields = '__all__'
+    lookup_field = 'image'
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        # ipdb.set_trace(context=5)
+        from src.likes.models import Like
+
+        all_images = Image.objects.all()
+        queryset_dict = []
+        for img in all_images.values():
+            likes_count = Like.objects.filter(image__pk=img['id']).count()
+            if likes_count >= self.top_likes:
+                queryset_dict.append(img)
+
+        return ImageSerializer(queryset_dict, many=True).data
+
+class GetOwnerImages(ListAPIView):
+    serializer_class = ImageSerializer
+    filter_backends = [SearchFilter]  # ово мора бити низ!
+    search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
+    ordering_fields = '__all__'
+    lookup_field = 'image'
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        # ipdb.set_trace(context=5)
+        profile_id = self.kwargs.get("profile_id")
+        if not profile_id:
+            return ImageSerializer(None).data
+        queryset = Image.objects.filter(album__owner__pk=profile_id)
+        return queryset
