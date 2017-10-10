@@ -1,4 +1,6 @@
+import ipdb
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import detail_route
 from rest_framework.mixins import UpdateModelMixin, DestroyModelMixin
@@ -53,23 +55,47 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         return Profile.objects.get(pk=self.kwargs.get("profile_id"))
 
     def put(self, request, *args, **kwargs):
+        # ipdb.set_trace()
         # instance = Profile.objects.get(pk=kwargs.get("pk"))
         instance = self.get_object()
         data = request.data
         if not instance:
             return Response(data={"status": "fail", "code": 404, "messages": ["No profile with that id"]})
+        first_name = instance.user.first_name
+        last_name  = instance.user.last_name
+        username   = instance.user.username
+        email      = instance.user.email
+        is_active  = instance.user.is_active
+        password   = instance.user.password
+        profile_picture = instance.profile_picture
+        changed = False
 
-        instance.user.first_name = data["user.first_name"] if data["user.first_name"] else instance.user.first_name
-        instance.user.last_name = data["user.last_name"] if data["user.last_name"] else instance.user.last_name
-        instance.user.email = data["user.email"] if data["user.email"] else instance.user.email
-        instance.user.username = data["user.username"] if data["user.username"] else instance.user.username
-        instance.user.is_active = bool(data["user.is_active"]) if data["user.is_active"] else instance.user.is_active
-        instance.user.set_password(data["user.password"]) if data["user.password"] else instance.user.password
-        instance.user.save()
+        if "user.first_name" in data:
+            instance.user.first_name = data['user.first_name']
+            changed = True
+        if "user.last_name" in data:
+            instance.user.last_name = data['user.last_name']
+            changed = True
+        if "user.email" in data:
+            instance.user.email = data['user.email']
+            changed = True
+        if "user.username" in data:
+            instance.user.username = data['user.username']
+            changed = True
+        if "user.is_active" in data:
+            instance.user.is_active = data['user.is_active']
+            changed = True
+        if "user.password" in data:
+            instance.user.set_password(data['user.password'])
+            changed = True
+        if "profile_picture" in data:
+            instance.profile_picture = data['profile_picture']
+            changed = True
+        if changed:
+            instance.user.save()
+            instance.save()
 
-        instance.profile_picture = data['profile_picture'] if data['profile_picture'] else instance.profile_picture
-        instance.save()
-        return instance
+        return JsonResponse({"data":self.serializer_class(instance=instance).data})
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
