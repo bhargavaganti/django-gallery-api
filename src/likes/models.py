@@ -5,8 +5,8 @@ from django.urls import reverse
 User = settings.AUTH_USER_MODEL
 
 class Like(models.Model):
-    owner     = models.ManyToManyField("profiles.Profile")
-    image     = models.ManyToManyField("images.Image")
+    # owner     = models.ManyToManyField("profiles.Profile")
+    # image     = models.ManyToManyField("images.Image")
     timestamp = models.DateTimeField(auto_now_add=True)
     updated   = models.DateTimeField(auto_now=True)
 
