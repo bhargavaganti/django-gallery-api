@@ -47,7 +47,7 @@ class GetAlbumsAPI(ListAPIView):
         if not profile:
             return JsonResponse({"status": "fail", "code": 404}, safe=True)
 
-        queryset_list = Album.objects.filter(owner_id=profile_id)
+        queryset_list = profile.albums.all()
         return queryset_list
 
 
@@ -61,24 +61,36 @@ class CreateAlbumAPI(CreateAPIView):
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser,)
 
-    def perform_create(self, serializer):
-        if self.request.user.is_authenticated:
-            profile = Profile.objects.get(user=self.request.user)  # TODO: тестирати
-            serializer.save(owner=profile)
+    # def perform_create(self, serializer):
+    #     profile_id = self.kwargs['profile_id']
+    #
+    #     if self.request.user.is_authenticated:
+    #         profile = Profile.objects.get(user=self.request.user)
+    #         serializer.save(owner=profile)
+    #     elif profile_id:
+    #         profile = Profile.objects.get(pk=profile_id)
+    #         serializer.save(owner=profile)
 
     def post(self, request, *args, **kwargs):
-        profile_id = request.user if request.user.is_authenticated else request.POST['owner']
-        profile = Profile.objects.get(pk=profile_id)
-        album_name = prepare_path(request.POST['name'])
+        profile_id = self.kwargs['profile_id']
+        profile    = None
+
+        if self.request.user.is_authenticated:
+            profile = Profile.objects.get(user=self.request.user)
+        elif profile_id:
+            profile = Profile.objects.get(pk=profile_id)
+
+        album_name  = request.POST['name']
         description = request.POST['description'] or ""
-        public = request.POST['is_public']
+        public      = request.POST['is_public']
 
         album = Album.objects.create(
             name=album_name,
             description=description,
-            owner=profile,
+            # owner=profile,
             is_public=public
         )
+        album.save()
 
         images = []
         image_files = request.FILES.getlist('images')
@@ -87,6 +99,10 @@ class CreateAlbumAPI(CreateAPIView):
             img_file.name = prepare_path(img_file)
             image = {'name': img_file.name, 'image': img_file, 'is_public': public}
             images.append(image)
+
+        # add relations
+        profile.albums.add(album)
+        profile.save()
         album.save()
 
         for img in images:

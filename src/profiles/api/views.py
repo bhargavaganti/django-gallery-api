@@ -56,44 +56,21 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
 
     def put(self, request, *args, **kwargs):
         # ipdb.set_trace()
-        # instance = Profile.objects.get(pk=kwargs.get("pk"))
         instance = self.get_object()
         data = request.data
         if not instance:
             return Response(data={"status": "fail", "code": 404, "messages": ["No profile with that id"]})
-        first_name = instance.user.first_name
-        last_name  = instance.user.last_name
-        username   = instance.user.username
-        email      = instance.user.email
-        is_active  = instance.user.is_active
-        password   = instance.user.password
-        profile_picture = instance.profile_picture
-        changed = False
 
-        if "user.first_name" in data:
-            instance.user.first_name = data['user.first_name']
-            changed = True
-        if "user.last_name" in data:
-            instance.user.last_name = data['user.last_name']
-            changed = True
-        if "user.email" in data:
-            instance.user.email = data['user.email']
-            changed = True
-        if "user.username" in data:
-            instance.user.username = data['user.username']
-            changed = True
-        if "user.is_active" in data:
-            instance.user.is_active = data['user.is_active']
-            changed = True
+        instance.user.first_name = data.get('user.first_name', instance.user.first_name)
+        instance.user.last_name = data.get('user.last_name', instance.user.last_name)
+        instance.user.email = data.get('user.email', instance.user.email)
+        instance.user.username = data.get('user.username', instance.user.username)
+        instance.user.is_active = data.get('user.is_active', instance.user.is_active)
+        instance.profile_picture = data.get('profile_picture', instance.profile_picture)
         if "user.password" in data:
             instance.user.set_password(data['user.password'])
-            changed = True
-        if "profile_picture" in data:
-            instance.profile_picture = data['profile_picture']
-            changed = True
-        if changed:
-            instance.user.save()
-            instance.save()
+        instance.user.save()
+        instance.save()
 
         return JsonResponse({"data":self.serializer_class(instance=instance).data})
 

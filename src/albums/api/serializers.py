@@ -12,12 +12,13 @@ class AlbumSerializer(ModelSerializer):
     """
 
     """
+    # owner = ProfileSerializer()
 
     class Meta:
         model = Album
         fields = [
             'id',
-            'owner',
+            # 'owner',
             'name',
             'description',
             'images',
@@ -25,7 +26,8 @@ class AlbumSerializer(ModelSerializer):
             'timestamp',
             'updated'
         ]
-
+    # def get_owner(self, obj):
+    #     return ProfileSerializer(instance=obj.profile_set.filter(albums__pk=obj.id)).data
 
 class DetailedAlbumSerializer(ModelSerializer):
     """
@@ -62,7 +64,7 @@ class CreateAlbumSerializer(ModelSerializer):
         model = Album
         fields = [
             'id',
-            'owner',
+            # 'owner',
             'name',
             'description',
             'images',
