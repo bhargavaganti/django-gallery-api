@@ -12,7 +12,7 @@ def content_file_name(instance, filename):
 
 class Image(models.Model):
     name        = models.CharField(max_length=120, blank=False, null=True)
-    # album       = models.ForeignKey("albums.Album", related_name="album_id", null=True, blank=True)
+    album       = models.ForeignKey("albums.Album", related_name="album_id", null=True, blank=True)
     image       = models.ImageField(verbose_name="Image", blank=True, null=True, upload_to=content_file_name)
     description = models.TextField(max_length=500, null=True, blank=True)
     comments    = models.ManyToManyField("comments.Comment", related_name="all_comments", blank=True, unique=False)
