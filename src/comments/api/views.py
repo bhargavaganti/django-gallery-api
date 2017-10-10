@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, get_object_or_404
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, \
+    get_object_or_404
 from rest_framework.response import Response
 
 from .serializers import CommentSerializer, CreateCommentSerializer, DetailedCommentSerializer
@@ -20,10 +21,10 @@ class GetCommentsAPI(ListAPIView):
     """
     serializer_class = CommentSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
-    authentication_classes = [AllowAny]
+    permission_classes = [AllowAny]
 
     def get_queryset(self, *args, **kwargs):
-       # ipdb.set_trace(context=5)
+        # ipdb.set_trace(context=5)
         profile_id = self.kwargs.get("profile_id")
         image_id = self.kwargs.get("image_id")
         if not profile_id:
@@ -45,7 +46,8 @@ class GetCommentsAPI(ListAPIView):
             return Response({"status": "fail"}, status=403)
         image = Image.objects.get(pk=image_id, album_id=album_id)
 
-        queryset_list = Comment.objects.filter(image__pk=image_id)
+        # queryset_list = Comment.objects.filter(image__pk=image_id)
+        queryset_list = image.comments.all()
         return queryset_list
 
 
@@ -58,9 +60,69 @@ class CreateCommentAPI(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        profile = Profile.objects.get(user=self.request.user)
-        serializer.save(owner=profile)
+        if self.kwargs['profile_id']:
+            profile = Profile.objects.get(user=self.request.user)
+            serializer.save(owner=profile)
 
+    # def post(self, request, *args, **kwargs):
+    #     # ipdb.set_trace()
+    #     from src.profiles.api.serializers import ProfileSerializer
+    #     from src.images.api.serializers import ImageSerializer
+    #
+    #     owner_id = request.POST['owner_id']
+    #     image_id = self.kwargs['image_id']
+    #     content = request.POST['content']
+    #
+    #     if not owner_id:
+    #         return JsonResponse({"status": "fail", "code": 501, "messages": ["No profile id provided."]})
+    #
+    #     profile = Profile.objects.get(pk=owner_id)
+    #     image = Image.objects.get(pk=image_id)
+    #     profile_serialized = ProfileSerializer(instance=profile).data
+    #     image_serialized = ImageSerializer(instance=image).data
+    #
+    #     comment_data = {'owner': profile_serialized, 'image': image_serialized, 'content': content}
+    #
+
+        # comment = Comment.objects.create(
+        #     owner=profile,
+        #     image=image,
+        #     content=content
+        # )
+        #
+        #
+
+        # return JsonResponse({"data": serializer.data})
+    def post(self, request, *args, **kwargs):
+        # ipdb.set_trace()
+        from src.images.api.serializers import ImageSerializer
+        from src.profiles.api.serializers import ProfileSerializer
+
+        owner_id = request.POST['owner']
+        image_id = request.POST['image']
+        content = request.POST['content']
+
+        if not owner_id:
+            return JsonResponse({"status": "fail", "code": 501, "messages": ["No profile id provided."]})
+
+        comment = Comment()
+        comment.save()
+
+        profile = Profile.objects.get(pk=owner_id)
+        image = Image.objects.get(pk=image_id)
+        profile.commented.add(comment)
+        image.comments.add(comment)
+        profile.save()
+        image.save()
+        comment.content = content
+        # comment.image = image_id
+        # comment.owner = owner_id
+
+        # comment.image =
+        # comment.owner =
+        comment.save()
+        # return JsonResponse(self.serializer_class(instance=comment).data)
+        return self.create(request, *args, **kwargs)
 
 class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
@@ -78,13 +140,14 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
 
         if not profile_id:
             if image_id and comment_id:
-                return get_object_or_404(queryset=Comment.objects.all(), pk=comment_id, image__pk=image_id)
-            return JsonResponse({"status":"fail","code":403})
-
+                # return Image.objects.get(pk=image_id).comments.get(pk=comment_id)
+                return Comment.objects.get(pk=comment_id)
+                # return get_object_or_404(queryset=Comment.objects.all(), pk=comment_id, image__pk=image_id)
+            return JsonResponse({"status": "fail", "code": 403})
 
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
-            return JsonResponse({"status":"fail","code":404})
+            return JsonResponse({"status": "fail", "code": 404})
 
         album_id = self.kwargs.get("album_id")
         album = Album.objects.get(pk=album_id)

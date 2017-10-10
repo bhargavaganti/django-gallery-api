@@ -1,3 +1,4 @@
+import ipdb
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
@@ -16,6 +17,7 @@ class IsOwnerOrReadOnly(BasePermission):
 
     # Ако има право приступа објекту
     def has_object_permission(self, request, view, obj):
+        ipdb.set_trace()
         if request.method in SAFE_METHODS:
             return True
         print(f"request user is: {str(request.user)} and obj user is: {str(obj.owner.get().user)}")

@@ -11,3 +11,7 @@ log_file_path = "logs/all_logs.log"
 def log(msg):
     output = f"\n\n[{datetime.now()}: {str(msg)}\n\n"
     print(output)
+
+def prepare_path(raw):
+    path = str(raw).replace("'","").replace(" ", "_").replace("-", "_")
+    return path

@@ -63,6 +63,6 @@ class CreateCommentSerializer(ModelSerializer):
             'owner',
             'image',
             'content',
-            'timestamp',
+            # 'timestamp',
         ]
 

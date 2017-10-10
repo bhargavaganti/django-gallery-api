@@ -21,3 +21,4 @@ class Album(models.Model):
 
     def get_absolute_url(self): #get_absolute_url
         return reverse('albums:detail', kwargs={'pk': self.pk})
+

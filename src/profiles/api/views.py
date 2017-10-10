@@ -37,7 +37,8 @@ class CreateProfileAPI(CreateAPIView):
     """
     queryset = Profile.objects.all()
     serializer_class = CreateProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    # треба уградити captcha код
 
 
 class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
