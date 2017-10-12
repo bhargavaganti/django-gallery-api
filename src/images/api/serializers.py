@@ -17,7 +17,7 @@ class ImageSerializer(ModelSerializer):
             'id',
             'name',
             'description',
-            'album_id',
+            'album',
             'image',
             # 'tags',
             # 'comments',
@@ -63,14 +63,14 @@ class DetailedImageSerializer(ModelSerializer):
         from src.comments.api.serializers import CommentSerializer
         from src.comments.models import Comment
 
-        comments_qs = Comment.objects.filter(image__pk=obj.id)
+        comments_qs = obj.comment_set.all()
         return CommentSerializer(comments_qs, many=True).data
 
     def get_likes(self, obj):
         from src.likes.api.serializers import LikeSerializer
         from src.likes.models import Like
 
-        comments_qs = Like.objects.filter(image__pk=obj.id)
+        comments_qs = obj.like_set.all()
         return LikeSerializer(comments_qs, many=True).data
 
     # def get_tags(self, obj):

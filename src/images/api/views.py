@@ -90,11 +90,11 @@ class CreateImageAPI(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         # ipdb.set_trace()
-        name = request.POST['name']
-        description = request.POST['description'] or ""
-        is_public = bool(request.POST['is_public'])
+        name = request.POST.get('name', None)
+        description = request.POST.get('description', None)
+        is_public = bool(request.POST.get('is_public', None))
         image = request.FILES['image']
-        album_id = request.POST['album_id']
+        album_id = request.POST.get('album_id', self.kwargs.get('album_id'))
 
         image = Image.objects.create(
             name=name,

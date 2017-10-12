@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
 from src.profiles.api.views import GetProfilesAPI
 from src.albums.api.views import GetAlbumsAPI
+from .tests import testing
+
 
 
 urlpatterns = [
@@ -21,6 +23,7 @@ urlpatterns = [
     url(r'^api/images/', include("src.images.api.urls", namespace='images-api')),
     url(r'^api/tags/', include("src.tags.api.urls", namespace='tags-api')),
     url(r'^api/profiles/', include("src.profiles.api.urls", namespace='profiles-api')),
+    url(r'^api/testing/?', testing, name='test'),
 
 ]
 

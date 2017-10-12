@@ -87,7 +87,7 @@ class CreateAlbumAPI(CreateAPIView):
         album = Album.objects.create(
             name=album_name,
             description=description,
-            # owner=profile,
+            owner=profile,
             is_public=public
         )
         album.save()
@@ -141,27 +141,42 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
         profile = Profile.objects.get(pk=profile_id)
         if profile:
-            album = get_object_or_404(Album, pk=album_id, owner_id=profile_id)
+            album = get_object_or_404(Album, pk=album_id, owner__pk=profile_id)
         return album
 
     def put(self, request, *args, **kwargs):
         # TODO: ако се мења име албума, треба и на диску да се промени
         album       = Album.objects.get(pk=kwargs['album_id'])
-        name        = request.POST['name']
-        description = request.POST['description']
-        images      = request.FILES.getlist('images')
-        is_public   = request.POST['is_public']
-        owner_id    = request.POST['owner']
+        name        = request.POST.get('name', album.name)
+        description = request.POST.get('description', album.description)
+        images      = request.FILES.getlist('images') or album.images
+        is_public   = request.POST.get('is_public', album.is_public)
+        owner_id    = request.POST.get('owner', album.owner.id)
         owner = None
 
         if owner_id:
-            profile = Profile.objects.get(pk=owner_id)
+            owner = Profile.objects.get(pk=owner_id)
+
+        album_root = MEDIA_ROOT + "/img/"
+        old_album_path = prepare_path(album_root + album.name)
+        new_album_path = prepare_path(album_root + name)
+
+        log(f"Old album path: {old_album_path}\nNew album path: {new_album_path}" )
+        # заврши ово преименовање фолдер ау случају мењања назива
+        if album.name != name:
+            if os.path.exists(old_album_path):
+                log("Exist!")
+                os.rename(old_album_path, new_album_path)
+            else:
+                log("Does not exist!")
 
         album.name        = name if name else album.name
         album.description = description if description else album.description
-        album.images      = images if not images else album.images
+        album.images      = images if not images else album.images.all()
         album.is_public   = is_public if is_public is not None else album.is_public
         album.owner       = owner if owner is not None else album.owner
+
+
         album.save()
 
         serializer = self.serializer_class(instance=album)

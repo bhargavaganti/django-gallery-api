@@ -46,8 +46,7 @@ class GetCommentsAPI(ListAPIView):
             return Response({"status": "fail"}, status=403)
         image = Image.objects.get(pk=image_id, album_id=album_id)
 
-        # queryset_list = Comment.objects.filter(image__pk=image_id)
-        queryset_list = image.comments.all()
+        queryset_list = image.comment_set.all()
         return queryset_list
 
 
@@ -64,65 +63,24 @@ class CreateCommentAPI(CreateAPIView):
             profile = Profile.objects.get(user=self.request.user)
             serializer.save(owner=profile)
 
-    # def post(self, request, *args, **kwargs):
-    #     # ipdb.set_trace()
-    #     from src.profiles.api.serializers import ProfileSerializer
-    #     from src.images.api.serializers import ImageSerializer
-    #
-    #     owner_id = request.POST['owner_id']
-    #     image_id = self.kwargs['image_id']
-    #     content = request.POST['content']
-    #
-    #     if not owner_id:
-    #         return JsonResponse({"status": "fail", "code": 501, "messages": ["No profile id provided."]})
-    #
-    #     profile = Profile.objects.get(pk=owner_id)
-    #     image = Image.objects.get(pk=image_id)
-    #     profile_serialized = ProfileSerializer(instance=profile).data
-    #     image_serialized = ImageSerializer(instance=image).data
-    #
-    #     comment_data = {'owner': profile_serialized, 'image': image_serialized, 'content': content}
-    #
-
-        # comment = Comment.objects.create(
-        #     owner=profile,
-        #     image=image,
-        #     content=content
-        # )
-        #
-        #
-
-        # return JsonResponse({"data": serializer.data})
     def post(self, request, *args, **kwargs):
         # ipdb.set_trace()
-        from src.images.api.serializers import ImageSerializer
-        from src.profiles.api.serializers import ProfileSerializer
-
-        owner_id = request.POST['owner']
-        image_id = request.POST['image']
+        owner_id = request.POST.get('owner', self.kwargs.get("profile_id"))
+        image_id = request.POST.get('image', self.kwargs.get("image_id"))
         content = request.POST['content']
-
         if not owner_id:
             return JsonResponse({"status": "fail", "code": 501, "messages": ["No profile id provided."]})
 
-        comment = Comment()
-        comment.save()
-
         profile = Profile.objects.get(pk=owner_id)
         image = Image.objects.get(pk=image_id)
-        profile.commented.add(comment)
-        image.comments.add(comment)
-        profile.save()
-        image.save()
-        comment.content = content
-        # comment.image = image_id
-        # comment.owner = owner_id
-
-        # comment.image =
-        # comment.owner =
+        comment = Comment(content=content)
         comment.save()
-        # return JsonResponse(self.serializer_class(instance=comment).data)
-        return self.create(request, *args, **kwargs)
+        comment.owner.add(profile)
+        comment.image.add(image)
+        comment.save()
+        image.save()
+        return JsonResponse(self.serializer_class(instance=comment).data)
+
 
 class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
@@ -143,7 +101,7 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
                 # return Image.objects.get(pk=image_id).comments.get(pk=comment_id)
                 return Comment.objects.get(pk=comment_id)
                 # return get_object_or_404(queryset=Comment.objects.all(), pk=comment_id, image__pk=image_id)
-            return JsonResponse({"status": "fail", "code": 403})
+            return JsonResponse({"status": "fail", "code": 406})
 
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
@@ -165,7 +123,20 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         return comment
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        comment_id = self.kwargs.get("comment_id")
+        if not comment_id:
+            return JsonResponse({"status": "fail", "code": 406})
+
+        comment = Comment.objects.get(pk=comment_id)
+
+        if not comment:
+            return JsonResponse({"status": "fail", "code": 404})
+
+        comment.content = request.POST.get('content', comment.content)
+        comment.save()
+
+        return JsonResponse({"status": "success", "code": 200, "data": self.serializer_class(instance=comment).data,
+                             "messages": ["Comment successfully updated!"]})
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)

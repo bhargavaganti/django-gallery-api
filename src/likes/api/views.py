@@ -47,6 +47,22 @@ class CreateLikeAPI(CreateAPIView):
         profile = Profile.objects.get(user=self.request.user)
         serializer.save(owner=profile)
 
+    def post(self, request, *args, **kwargs):
+        image_id = self.kwargs.get('image_id')
+
+        if not image_id:
+            return JsonResponse({"status": "fail", "code": 406})
+        image = Image.objects.get(pk=self.kwargs.get('image_id'))
+        profile = Profile.objects.get(user=self.request.user)
+
+        like = Like()
+        like.save()
+        like.owner.add(profile)
+        like.image.add(image)
+        like.save()
+
+        return JsonResponse(self.serializer_class(instance=like).data)
+
 
 class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """

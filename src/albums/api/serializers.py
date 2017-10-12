@@ -18,7 +18,7 @@ class AlbumSerializer(ModelSerializer):
         model = Album
         fields = [
             'id',
-            # 'owner',
+            'owner',
             'name',
             'description',
             'images',
@@ -64,7 +64,7 @@ class CreateAlbumSerializer(ModelSerializer):
         model = Album
         fields = [
             'id',
-            # 'owner',
+            'owner',
             'name',
             'description',
             'images',
