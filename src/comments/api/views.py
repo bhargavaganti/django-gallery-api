@@ -119,7 +119,10 @@ class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         if not comment_id:
             return JsonResponse({"status": "fail", "code": 404})
 
-        comment = get_object_or_404(queryset=Comment.objects.all(), pk=comment_id, image__pk=image_id)
+        comment = image.comment_set.get(pk=comment_id)
+        if not comment:
+            return JsonResponse({"status": "fail", "code": 404})
+
         return comment
 
     def put(self, request, *args, **kwargs):

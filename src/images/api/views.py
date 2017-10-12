@@ -128,7 +128,45 @@ class ImageDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
     def put(self, request, *args, **kwargs):
         # TODO: ако се мења име слике, треба и на диску да се промени
-        return self.update(request, *args, **kwargs)
+
+        profile_id = self.kwargs.get("profile_id")
+        album_id = self.kwargs.get("album_id")
+        image_id = self.kwargs.get("image_id")
+
+        if not profile_id or not album_id or not image_id:
+            return Response({"status": "fail"}, status=406)
+
+        profile = Profile.objects.get(pk=profile_id)
+
+        if not profile:
+            return Response({"status": "fail"}, status=404)
+
+        album = profile.albums.get(pk=album_id)
+
+        if not album:
+            return Response({"status": "fail"}, status=404)
+
+        image = album.images.get(pk=image_id)
+
+        image.name = request.POST.get('name', image.name)
+        image.description = request.POST.get('description', image.description)
+        image.is_public = request.POST.get('is_public', image.is_public)
+        image.image = request.FILES.get('image', image.image)
+        image.album = request.POST.get('album', image.album)
+
+        tags = request.POST.getlist('tags',image.tag_set.all())
+
+        for tag in tags:
+            try:
+                image.tag_set.remove(tag)
+                image.tag_set.add(tag)
+            except:
+                image.tag_set.add(tag)
+
+        image.save()
+
+        return JsonResponse(self.serializer_class(instance=image).data)
+
 
     def delete(self, request, *args, **kwargs):
         # користи се django-cleanup за брисање слике-датотеке

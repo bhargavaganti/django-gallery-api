@@ -33,7 +33,7 @@ class GetTagsAPI(ListAPIView):
         if not image_id:
             queryset_list = Tag.objects.all()
             return queryset_list
-        queryset_list = Image.objects.get(pk=image_id).tags.all()
+        queryset_list = Image.objects.get(pk=image_id).tag_set.all()
         # queryset_list = Tag.objects.filter(images__pk=image_id)
         return queryset_list
 
@@ -69,7 +69,7 @@ class TagDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
     queryset = Tag.objects.all()
     serializer_class = DetailedTagSerializer
-    permission_classes = [IsAdminUser, IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
         image_id = self.kwargs.get("image_id")

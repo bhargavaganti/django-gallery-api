@@ -38,7 +38,7 @@ class DetailedImageSerializer(ModelSerializer):
 
     comments = SerializerMethodField()
     likes = SerializerMethodField()
-    # tags = SerializerMethodField()
+    tags = SerializerMethodField()
 
     class Meta:
         model = Image
@@ -73,9 +73,10 @@ class DetailedImageSerializer(ModelSerializer):
         comments_qs = obj.like_set.all()
         return LikeSerializer(comments_qs, many=True).data
 
-    # def get_tags(self, obj):
-    #     from src.tags.api.serializers import TagSerializer
-    #     return TagSerializer(obj.tags.all(), many=True).data
+    def get_tags(self, obj):
+        from src.tags.api.serializers import TagSerializer
+        tags_qs = obj.tag_set.all()
+        return TagSerializer(tags_qs, many=True).data
 
 
 class CreateImageSerializer(ModelSerializer):

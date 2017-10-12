@@ -55,6 +55,15 @@ class CreateLikeAPI(CreateAPIView):
         image = Image.objects.get(pk=self.kwargs.get('image_id'))
         profile = Profile.objects.get(user=self.request.user)
 
+        # ако лајк већ постоји, обриши га
+        try:
+            exist = Like.objects.get(image__pk=image_id, owner__pk=profile.id)
+            if exist:
+                exist.delete()
+                return JsonResponse({"status":"success", "code":200, "data":None, "messages":["Unliked!"]})
+        except Like.DoesNotExist:
+            pass
+
         like = Like()
         like.save()
         like.owner.add(profile)
