@@ -12,7 +12,7 @@ class AlbumSerializer(ModelSerializer):
     """
 
     """
-    # owner = ProfileSerializer()
+    owner = SerializerMethodField()
 
     class Meta:
         model = Album
@@ -26,15 +26,17 @@ class AlbumSerializer(ModelSerializer):
             'timestamp',
             'updated'
         ]
-    # def get_owner(self, obj):
-    #     return ProfileSerializer(instance=obj.profile_set.filter(albums__pk=obj.id)).data
+
+    def get_owner(self, obj):
+        return ProfileSerializer(instance=obj.owner).data['id']
+
 
 class DetailedAlbumSerializer(ModelSerializer):
     """
 
     """
 
-    owner = ProfileSerializer()
+    owner = SerializerMethodField()
     images = SerializerMethodField()
 
     class Meta:
@@ -54,6 +56,9 @@ class DetailedAlbumSerializer(ModelSerializer):
         from src.images.api.serializers import ImageSerializer
         return ImageSerializer(Image.objects.filter(album_id=obj.id), many=True).data
 
+    def get_owner(self,obj):
+        from src.profiles.api.serializers import ProfileSerializer
+        return ProfileSerializer(instance=obj.owner).data
 
 class CreateAlbumSerializer(ModelSerializer):
     """
@@ -62,11 +67,18 @@ class CreateAlbumSerializer(ModelSerializer):
 
     class Meta:
         model = Album
+
+        # owner = SerializerMethodField()
+
         fields = [
             'id',
-            'owner',
+            # 'owner',
             'name',
             'description',
             'images',
             'is_public',
         ]
+
+        # def get_owner(self, obj):
+        #     from src.profiles.api.serializers import ProfileSerializer
+        #     return ProfileSerializer(instance=obj.owner).data

@@ -7,8 +7,6 @@ from django.conf.urls import url
 from django.http import HttpResponse
 
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
-from src.profiles.api.views import GetProfilesAPI
-from src.albums.api.views import GetAlbumsAPI
 from .tests import testing
 
 

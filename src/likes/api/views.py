@@ -44,12 +44,13 @@ class CreateLikeAPI(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        profile = Profile.objects.get(user=self.request.user)
-        serializer.save(owner=profile)
+        if self.kwargs['profile_id']:
+            profile = Profile.objects.get(user=self.request.user)
+            serializer.save(owner=profile)
 
     def post(self, request, *args, **kwargs):
         image_id = self.kwargs.get('image_id')
-
+        profile_id = Profile.objects.get(user=self.request.user).id
         if not image_id:
             return JsonResponse({"status": "fail", "code": 406})
         image = Image.objects.get(pk=self.kwargs.get('image_id'))
@@ -57,7 +58,7 @@ class CreateLikeAPI(CreateAPIView):
 
         # ако лајк већ постоји, обриши га
         try:
-            exist = Like.objects.get(image__pk=image_id, owner__pk=profile.id)
+            exist = Like.objects.get(image__pk=image_id, owner__pk=profile_id)
             if exist:
                 exist.delete()
                 return JsonResponse({"status":"success", "code":200, "data":None, "messages":["Unliked!"]})

@@ -37,7 +37,8 @@ class GetCommentsAPI(ListAPIView):
         album_id = self.kwargs.get("album_id")
         if not album_id:
             return Response({"status": "fail"}, status=403)
-        album = Album.objects.get(pk=album_id, owner_id=profile_id)
+        # album = Album.objects.get(pk=album_id, profile__pk=profile_id)
+        album = profile.albums.get(pk=album_id)
 
         if not album:
             return Response({"status": "fail"}, status=404)
@@ -65,7 +66,7 @@ class CreateCommentAPI(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         # ipdb.set_trace()
-        owner_id = request.POST.get('owner', self.kwargs.get("profile_id"))
+        owner_id = Profile.objects.get(user=request.user).id
         image_id = request.POST.get('image', self.kwargs.get("image_id"))
         content = request.POST['content']
         if not owner_id:

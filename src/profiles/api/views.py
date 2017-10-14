@@ -62,11 +62,12 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
             return Response(data={"status": "fail", "code": 404, "messages": ["No profile with that id"]})
 
         instance.user.first_name = data.get('user.first_name', instance.user.first_name)
-        instance.user.last_name = data.get('user.last_name', instance.user.last_name)
-        instance.user.email = data.get('user.email', instance.user.email)
-        instance.user.username = data.get('user.username', instance.user.username)
-        instance.user.is_active = data.get('user.is_active', instance.user.is_active)
+        instance.user.last_name  = data.get('user.last_name',  instance.user.last_name)
+        instance.user.email      = data.get('user.email',      instance.user.email)
+        instance.user.username   = data.get('user.username',   instance.user.username)
+        instance.user.is_active  = data.get('user.is_active',  instance.user.is_active)
         instance.profile_picture = data.get('profile_picture', instance.profile_picture)
+
         if "user.password" in data:
             instance.user.set_password(data['user.password'])
         instance.user.save()

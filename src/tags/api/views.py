@@ -44,7 +44,7 @@ class TagImagesAPI(ListAPIView):
     """
     serializer_class = DetailedImageSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
-    search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
+    search_fields = ('name__icontains', 'description__icontains', 'tag__name__icontains', 'timestamp', 'updated')
     ordering_fields = '__all__'
     lookup_field = 'image'
     permission_classes = [AllowAny]

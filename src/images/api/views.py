@@ -1,3 +1,6 @@
+from itertools import product
+
+from django.db.models import Count
 from django.http import JsonResponse
 from rest_framework.mixins import UpdateModelMixin, DestroyModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
@@ -51,7 +54,7 @@ class GetImagesAPI(ListAPIView):
     """
     serializer_class = ImageSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
-    search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
+    search_fields = ('name__icontains', 'description__icontains', 'tag__name__icontains', 'timestamp', 'updated')
     ordering_fields = '__all__'
     lookup_field = 'image'
     permission_classes = [AllowAny]
@@ -72,11 +75,11 @@ class GetImagesAPI(ListAPIView):
             # return Image.objects.all()
             return Response({"status": "fail"}, status=403)
 
-        album = Album.objects.get(pk=album_id, owner_id=profile_id)
+        album = profile.albums.get(pk=album_id)
         if not album:
             return Response({"status": "fail"}, status=404)
 
-        queryset_list = Image.objects.filter(album_id=album_id)
+        queryset_list = album.images.all()
         return queryset_list
 
 
@@ -174,8 +177,6 @@ class ImageDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
 
 class GetTopImages(ListAPIView):
-    from src.gallery.settings import top_likes
-
     serializer_class = ImageSerializer
     filter_backends = [SearchFilter]  # ово мора бити низ!
     search_fields = ('name', 'description', 'tag__name', 'timestamp', 'updated')
@@ -184,17 +185,30 @@ class GetTopImages(ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
+        from src.gallery.settings import top_likes
         from src.likes.models import Like
 
         # ipdb.set_trace(context=5)
-        all_images = Image.objects.all()
-        queryset_dict = []
-        for img in all_images.values():
-            likes_count = Like.objects.filter(image__pk=img['id']).count()
-            if likes_count >= self.top_likes:
-                queryset_dict.append(img)
+        # all_images = Image.objects.all()
+        # queryset_dict = []
+        # for img in all_images.values():
+        #     likes_count = Like.objects.filter(image__pk=img['id']).count()
+        #     if likes_count >= top_likes:
+        #         img['album'] = img['album_id']
+        #         del img['album_id']
+        #         queryset_dict.append(img)
+        # serializer = ImageSerializer(data=queryset_dict, many=True)
+        # serializer.is_valid()
 
-        return ImageSerializer(queryset_dict, many=True).data
+        # return serializer.data
+        # return JsonResponse(serializer.data, safe=False)
+
+
+        # queryset_list = Image.objects.filter(like_set__count=top_likes)
+
+        queryset_list = Image.objects.annotate(like__count=Count('like__pk')).filter(like__count__gte=top_likes)
+
+        return queryset_list
 
 
 class GetOwnerImages(ListAPIView):

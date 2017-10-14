@@ -46,7 +46,7 @@ class DetailedTagSerializer(ModelSerializer):
         ]
 
     def get_images(self, obj):
-        images_qs = obj.image_set.all()
+        images_qs = obj.images.all()
         images = ImageSerializer(images_qs, many=True).data
         return images
 

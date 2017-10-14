@@ -26,17 +26,18 @@ from src.gallery.helpers import prepare_path
 import ipdb
 
 
-class GetAlbumsAPI(ListAPIView):
+class CreateGetAlbumsAPI(ListAPIView, CreateAPIView):
     """
     Oво је прва АПИ класа у којој је потребно имплеменитрати
     добављање свих објеката, и њихово презентовање у JSON формату
     """
 
-    serializer_class = AlbumSerializer
+    serializer_class = [AlbumSerializer, CreateAlbumSerializer]
     filter_backends = [SearchFilter]  # ово мора бити низ!
     search_fields = ('name', 'description', 'owner__user__username', 'timestamp', 'updated')
     ordering_fields = '__all__'
     permission_classes = [AllowAny]
+    parser_classes = (MultiPartParser, FormParser,)
 
     def get_queryset(self, *args, **kwargs):
         profile_id = self.kwargs.get("profile_id")
@@ -48,46 +49,26 @@ class GetAlbumsAPI(ListAPIView):
             return JsonResponse({"status": "fail", "code": 404}, safe=True)
 
         queryset_list = profile.albums.all()
+        self.serializer_class = AlbumSerializer
         return queryset_list
 
-
-class CreateAlbumAPI(CreateAPIView):
-    """
-
-    """
-
-    queryset = Album.objects.all()
-    serializer_class = CreateAlbumSerializer
-    permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser,)
-
-    # def perform_create(self, serializer):
-    #     profile_id = self.kwargs['profile_id']
-    #
-    #     if self.request.user.is_authenticated:
-    #         profile = Profile.objects.get(user=self.request.user)
-    #         serializer.save(owner=profile)
-    #     elif profile_id:
-    #         profile = Profile.objects.get(pk=profile_id)
-    #         serializer.save(owner=profile)
-
     def post(self, request, *args, **kwargs):
+        self.serializer_class = CreateAlbumSerializer
         profile_id = self.kwargs['profile_id']
-        profile    = None
+        profile = None
 
         if self.request.user.is_authenticated:
             profile = Profile.objects.get(user=self.request.user)
         elif profile_id:
             profile = Profile.objects.get(pk=profile_id)
 
-        album_name  = request.POST['name']
+        album_name = request.POST['name']
         description = request.POST['description'] or ""
-        public      = request.POST['is_public']
+        public = request.POST['is_public']
 
         album = Album.objects.create(
             name=album_name,
             description=description,
-            owner=profile,
             is_public=public
         )
         album.save()
@@ -128,6 +109,7 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     queryset = Album.objects.all()
     serializer_class = DetailedAlbumSerializer
     permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
+
     # authentication_classes = (JSONWebTokenAuthentication,)
 
     def get_object(self):
@@ -141,27 +123,27 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
 
         profile = Profile.objects.get(pk=profile_id)
         if profile:
-            album = get_object_or_404(Album, pk=album_id, owner__pk=profile_id)
+            album = profile.albums.get(pk=album_id)
         return album
 
     def put(self, request, *args, **kwargs):
         # TODO: ако се мења име албума, треба и на диску да се промени
-        album       = Album.objects.get(pk=kwargs['album_id'])
-        name        = request.POST.get('name', album.name)
+        album = Album.objects.get(pk=kwargs['album_id'])
+        name = request.POST.get('name', album.name)
         description = request.POST.get('description', album.description)
-        images      = request.FILES.getlist('images') or album.images
-        is_public   = request.POST.get('is_public', album.is_public)
-        owner_id    = request.POST.get('owner', album.owner.id)
+        images = request.FILES.getlist('images') or album.images
+        is_public = request.POST.get('is_public', album.is_public)
+        owner_id = request.POST.get('owner', album.owner.id)
         owner = None
-
-        if owner_id:
-            owner = Profile.objects.get(pk=owner_id)
+        #
+        # if owner_id:
+        #     owner = Profile.objects.get(pk=owner_id)
 
         album_root = MEDIA_ROOT + "/img/"
         old_album_path = prepare_path(album_root + album.name)
         new_album_path = prepare_path(album_root + name)
 
-        log(f"Old album path: {old_album_path}\nNew album path: {new_album_path}" )
+        log(f"Old album path: {old_album_path}\nNew album path: {new_album_path}")
         # заврши ово преименовање фолдер ау случају мењања назива
         if album.name != name:
             if os.path.exists(old_album_path):
@@ -170,16 +152,14 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
             else:
                 log("Does not exist!")
 
-        album.name        = name if name else album.name
+        album.name = name if name else album.name
         album.description = description if description else album.description
-        album.images      = images if not images else album.images.all()
-        album.is_public   = is_public if is_public is not None else album.is_public
-        album.owner       = owner if owner is not None else album.owner
-
-
+        album.images = images if not images else album.images.all()
+        album.is_public = is_public if is_public is not None else album.is_public
+        album.set_owner(owner if owner is not None else album.owner)
         album.save()
 
-        serializer = self.serializer_class(instance=album)
+        serializer = DetailedAlbumSerializer(instance=album)
         return JsonResponse(serializer.data)
 
         # return self.update(request, *args, **kwargs)
@@ -196,4 +176,10 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
         images = album.images.all()
         for img in images:
             img.delete()
-        return self.destroy(request, *args, **kwargs)
+
+        try:
+            album.delete()
+            return JsonResponse({"status": "success", "code": 200, "data": None,
+                                 "messages": ["Album is successfully deleted!"]})
+        except:
+            return JsonResponse({"status": "fail", "code": 500, "data": album, "messages": ["Error: Album was not deleted!"]})
