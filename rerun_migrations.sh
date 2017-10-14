@@ -5,5 +5,5 @@ python3.6 manage.py reset_db
 echo "\nCreating new migrations:\n"
 python3.6 manage.py makemigrations
 echo "\nMigrating:\n"
-python3.6 manage.py migrate
+python3.6 manage.py migrate --run-syncdb
 echo "\nDone."
