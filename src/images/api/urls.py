@@ -1,11 +1,7 @@
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from src.tags.api.views import TagDetailAPIView
-
-from src.tags.api.views import GetTagsAPI
-from .views import GetImagesAPI, CreateImageAPI, ImageDetailAPIView, GetAllImages, GetImage, GetTopImages, \
-    GetOwnerImages
+from .views import ImageDetailAPIView, GetTopImages, GetOwnerImages, CreateGetImagesAPI
 
 urlpatterns = [
     # да ли направити све ове руте? лајкови, коментари?
@@ -15,10 +11,9 @@ urlpatterns = [
     url(r'(?P<image_id>\d+)/comments/?', include("src.comments.api.urls", namespace='image-comments')),
     url(r'(?P<image_id>\d+)/likes/?', include("src.likes.api.urls", namespace='image-likes')),
     url(r'(?P<image_id>\d+)/tags/?', include("src.tags.api.urls", namespace='image-tags')),
-    url(r'(?P<image_id>\d+)/?$', GetImage.as_view(), name='detail'),
-    # url(r'create/?$', CreateImageAPI.as_view(), name='create'),
+    url(r'(?P<image_id>\d+)/?$', ImageDetailAPIView.as_view(), name='detail'),
     url(r'top/?$', GetTopImages.as_view(), name='top'),
-    url(r'$', GetAllImages.as_view(), name='list')
+    url(r'$', CreateGetImagesAPI.as_view(), name='images-list-create')
 ]
 
 

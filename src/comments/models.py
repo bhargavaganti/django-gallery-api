@@ -19,3 +19,12 @@ class Comment(models.Model):
 
     def get_absolute_url(self): #get_absolute_url
         return reverse('comment:detail', kwargs={'pk': self.pk})
+
+    @property
+    def get_owner(self):
+        return self.owner.get()
+
+    @property
+    def get_image(self):
+        return self.image.get()
+

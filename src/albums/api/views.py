@@ -1,10 +1,12 @@
 import json
 import os
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
+from rest_framework import status
 from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin, CreateModelMixin
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -19,7 +21,6 @@ from src.gallery.settings import MEDIA_ROOT
 from src.albums.api.permissions import IsOwnerOrReadOnly
 from .serializers import AlbumSerializer, CreateAlbumSerializer, DetailedAlbumSerializer
 from src.profiles.models import Profile
-from src.profiles.api.permissions import IsAdminOrOwner
 from src.images.api.serializers import CreateImageSerializer
 from src.images.models import Image
 from src.gallery.helpers import prepare_path
@@ -37,23 +38,27 @@ class CreateGetAlbumsAPI(ListAPIView, CreateAPIView):
     search_fields = ('name', 'description', 'owner__user__username', 'timestamp', 'updated')
     ordering_fields = '__all__'
     permission_classes = [AllowAny]
-    parser_classes = (MultiPartParser, FormParser,)
+    parser_classes = (MultiPartParser, FormParser,JSONParser,)
 
     def get_queryset(self, *args, **kwargs):
+        self.serializer_class = AlbumSerializer
+
         profile_id = self.kwargs.get("profile_id")
+
         if not profile_id:
-            return Album.objects.all()
+            queryset_list = Album.objects.all()
+            return queryset_list
 
         profile = Profile.objects.get(pk=profile_id)
         if not profile:
-            return JsonResponse({"status": "fail", "code": 404}, safe=True)
+            raise Http404
 
         queryset_list = profile.albums.all()
-        self.serializer_class = AlbumSerializer
         return queryset_list
 
     def post(self, request, *args, **kwargs):
         self.serializer_class = CreateAlbumSerializer
+
         profile_id = self.kwargs['profile_id']
         profile = None
 
@@ -108,7 +113,7 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
     queryset = Album.objects.all()
     serializer_class = DetailedAlbumSerializer
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
 
     # authentication_classes = (JSONWebTokenAuthentication,)
 
@@ -124,6 +129,7 @@ class AlbumDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
         profile = Profile.objects.get(pk=profile_id)
         if profile:
             album = profile.albums.get(pk=album_id)
+
         return album
 
     def put(self, request, *args, **kwargs):

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from src.gallery.helpers import log
-from .permissions import IsOwnerOrReadOnly, IsAdminOrOwner
+from .permissions import IsOwnerOrReadOnly, IsAdminOrOwnerOrReadOnly
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, DestroyAPIView, \
     get_object_or_404
@@ -18,29 +18,24 @@ from .serializers import ProfileSerializer, CreateProfileSerializer, ProfileUpda
 from src.profiles.models import Profile
 
 
-class GetProfilesAPI(ListAPIView):
+class CreateGetProfilesAPI(ListAPIView, CreateAPIView):
     """
     Oво је прва АПИ класа у којој је потребно имплеменитрати
     добављање свих објеката, и њихово презентовање у JSON формату
     """
     serializer_class = ProfileSerializer
-    filter_backends = [SearchFilter]  # ово мора бити низ!
-    search_fields = ('user__username', 'user__first_name', 'user__email', 'timestamp', 'updated')
-    ordering_fields = '__all__'
+    filter_backends  = [SearchFilter]  # ово мора бити низ!
+    search_fields    = ('user__username', 'user__first_name', 'user__email', 'timestamp', 'updated')
+    ordering_fields  = '__all__'
 
     def get_queryset(self, *args, **kwargs):
         queryset_list = Profile.objects.all()
         return queryset_list
 
-
-class CreateProfileAPI(CreateAPIView):
-    """
-
-    """
-    queryset = Profile.objects.all()
-    serializer_class = CreateProfileSerializer
-    permission_classes = [AllowAny]
-    # треба уградити captcha код
+    def post(self, request, *args, **kwargs):
+        self.serializer_class   = CreateProfileSerializer
+        self.permission_classes = AllowAny
+        return self.create(request, *args, **kwargs)
 
 
 class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
@@ -48,8 +43,8 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
 
     """
     queryset = Profile.objects.all()
-    serializer_class = ProfileUpdateSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrOwner, ]
+    serializer_class   = ProfileUpdateSerializer
+    permission_classes = [IsAdminOrOwnerOrReadOnly, ]
 
     def get_object(self):
         return Profile.objects.get(pk=self.kwargs.get("profile_id"))
@@ -62,13 +57,12 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
             return Response(data={"status": "fail", "code": 404, "messages": ["No profile with that id"]})
 
         instance.user.first_name = data.get('user.first_name', instance.user.first_name)
-        instance.user.last_name  = data.get('user.last_name',  instance.user.last_name)
-        instance.user.email      = data.get('user.email',      instance.user.email)
-        instance.user.username   = data.get('user.username',   instance.user.username)
-        instance.user.is_active  = data.get('user.is_active',  instance.user.is_active)
+        instance.user.last_name  = data.get('user.last_name', instance.user.last_name)
+        instance.user.email      = data.get('user.email', instance.user.email)
+        instance.user.username   = data.get('user.username', instance.user.username)
+        instance.user.is_active  = data.get('user.is_active', instance.user.is_active)
         instance.profile_picture = data.get('profile_picture', instance.profile_picture)
-
-        if "user.password" in data:
+        if 'user.password' in data:
             instance.user.set_password(data['user.password'])
         instance.user.save()
         instance.save()
@@ -76,4 +70,7 @@ class ProfileDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView)
         return JsonResponse({"data":self.serializer_class(instance=instance).data})
 
     def delete(self, request, *args, **kwargs):
+        profile = Profile.objects.get(pk=self.kwargs.get("profile_id"))
+        profile.user.delete()
+        profile.albums.all().delete()
         return self.destroy(request, *args, **kwargs)

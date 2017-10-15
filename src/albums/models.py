@@ -22,13 +22,8 @@ class Album(models.Model):
     def get_absolute_url(self): #get_absolute_url
         return reverse('albums:detail', kwargs={'pk': self.pk})
 
-    @property
-    def owner(self):
-        return self.profile_set.get()
+    # @property
+    # def owner(self):
+    #     return self.profile_set.get()
 
-    def set_owner(self, owner):
-        try:
-            self.profile_set.remove(owner)
-            self.profile_set.add(owner)
-        except:
-            self.profile_set.add(owner)
+

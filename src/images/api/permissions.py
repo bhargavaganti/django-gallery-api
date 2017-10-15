@@ -24,3 +24,22 @@ class IsOwnerOrReadOnly(BasePermission):
             return owner == request.user or request.user.is_superuser
         else:
             print("Not in safe methods")
+
+class IsAdminOrOwnerOrReadOnly(BasePermission):
+    """
+
+    """
+    message = "Морате бити админ или власник да бисте могли мењати ове информације."
+
+    # Ако има право приступа објекту
+    def has_object_permission(self, request, view, obj):
+        image_owner = obj.album.owner # добављање једног објекта по параметру
+        if not image_owner:
+            return False
+
+        log(image_owner)
+
+        if request.method in SAFE_METHODS:
+            return image_owner.user == request.user or request.user.is_superuser
+        else:
+            print("Not in safe methods")

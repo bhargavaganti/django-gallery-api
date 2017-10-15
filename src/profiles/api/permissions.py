@@ -26,7 +26,7 @@ class IsOwnerOrReadOnly(BasePermission):
         return user == request.user
 
 
-class IsAdminOrOwner(BasePermission):
+class IsAdminOrOwnerOrReadOnly(BasePermission):
     """
 
     """
@@ -46,8 +46,6 @@ class IsAdminOrOwner(BasePermission):
         user = obj.user
 
         # print(f"request user is: {str(request.user)} and obj user is: {str(user)}")
-        if user == request.user or request.user.is_superuser:  # или да ли је само админ?
-            # print("Корисник је власник или је супер корисник")
-            return True
-        # print("Корисник није власник нити је супер корисник")
-        return False
+        if request.method in SAFE_METHODS:
+            return user == request.user or request.user.is_superuser
+

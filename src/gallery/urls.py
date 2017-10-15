@@ -20,7 +20,7 @@ urlpatterns = [
     url(r'^api/albums/', include("src.albums.api.urls", namespace='albums-api')),
     url(r'^api/images/', include("src.images.api.urls", namespace='images-api')),
     url(r'^api/tags/', include("src.tags.api.urls", namespace='tags-api')),
-    url(r'^api/profiles/', include("src.profiles.api.urls", namespace='profiles-api')),
+    url(r'^api/profiles/?', include("src.profiles.api.urls", namespace='profiles-api')),
     url(r'^api/testing/?', testing, name='test'),
 
 ]

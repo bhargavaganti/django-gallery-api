@@ -28,7 +28,7 @@ class AlbumSerializer(ModelSerializer):
         ]
 
     def get_owner(self, obj):
-        return ProfileSerializer(instance=obj.owner).data['id']
+        return ProfileSerializer(instance=obj.profile_set.first()).data
 
 
 class DetailedAlbumSerializer(ModelSerializer):
@@ -58,7 +58,8 @@ class DetailedAlbumSerializer(ModelSerializer):
 
     def get_owner(self,obj):
         from src.profiles.api.serializers import ProfileSerializer
-        return ProfileSerializer(instance=obj.owner).data
+        return ProfileSerializer(instance=obj.profile_set.get()).data
+
 
 class CreateAlbumSerializer(ModelSerializer):
     """
