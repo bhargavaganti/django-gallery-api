@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     #third party
     'rest_framework',
     # 'django_faker',
+    'rest_framework_docs',
     'django_extensions',
     'django_seed',
     'django_cleanup',

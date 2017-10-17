@@ -4,7 +4,10 @@ from src.gallery.helpers import log
 
 class IsAdminOrOwnerOrReadOnly(BasePermission):
     """
-
+    Класа права приступа која пропушта само власника
+    или супер корисникада мења стање објекта.
+    Ако није власник или корисник
+    може само да добије информације о објекту.
     """
     message = "Морате бити админ или власник да бисте могли мењати ове информације."
 
@@ -13,8 +16,5 @@ class IsAdminOrOwnerOrReadOnly(BasePermission):
         comment_owner = obj.owner # добављање једног објекта по параметру
         if not comment_owner:
             return False
-        log(comment_owner)
-        if request.method in SAFE_METHODS:
-            return comment_owner.user == request.user or request.user.is_superuser
-        else:
-            print("Not in safe methods")
+        # ако је аутентификовани корисник власник или ако је аутент. корисник супер корисник
+        return comment_owner.user == request.user or request.user.is_superuser

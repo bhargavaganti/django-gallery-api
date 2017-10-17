@@ -24,6 +24,5 @@ from django.contrib import admin
 from src.albums.views import AlbumListView, AlbumDetailView
 
 urlpatterns = [
-    # url(r'^(?P<album_id>\d+)/$', AlbumDetailView.as_view(), name="detail"),
-    # url(r'^$', AlbumListView.as_view(), name='list'),
+
 ]

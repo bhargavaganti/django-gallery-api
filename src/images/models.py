@@ -4,9 +4,19 @@ from django.db import models
 # Create your models here.
 from django.urls import reverse
 
+from src.gallery.helpers import prepare_path
+
 
 def content_file_name(instance, filename):
-    name = str(instance.album.name).replace("'","").replace(" ","_").replace("-","_")
+    """
+    Функција за припремање локације где ће се слика чувати;
+    На media/img/ ће бити надодато име албума и име слике
+    :param instance:
+    :param filename:
+    :return: str
+    """
+
+    name = prepare_path(instance.album.name)
     return '/'.join(['img', name, filename])
 
 
@@ -22,11 +32,10 @@ class Image(models.Model):
     timestamp   = models.DateField(auto_now_add=True)
     updated     = models.DateField(auto_now=True)
 
+    # стринг репрезентација објекта
     def __str__(self):
         return self.name
 
-    def __unicode__(self):
-        return self.name
-
+    # функција која враћа апсолутну путању до објекта
     def get_absolute_url(self): # get_absolute_url
         return reverse('images:detail', kwargs={'image_id': self.pk})

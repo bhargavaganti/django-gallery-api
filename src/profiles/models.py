@@ -7,6 +7,7 @@ from django.db import models
 # from .likes.models import Like
 from django.urls import reverse
 
+# асоцијација са уграђеним Корисник моделом
 User = settings.AUTH_USER_MODEL
 
 class Profile(models.Model):
@@ -26,6 +27,3 @@ class Profile(models.Model):
 
     def get_absolute_url(self): #get_absolute_url
         return reverse('profiles:detail', kwargs={'profile_id': self.pk})
-
-    def get_all_images(self):
-        pass

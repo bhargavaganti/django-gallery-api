@@ -12,12 +12,12 @@ class Comment(models.Model):
     updated   = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.content #maybe Comment?!
+        return self.content
 
     def __unicode__(self):
         return  self.content
 
-    def get_absolute_url(self): #get_absolute_url
+    def get_absolute_url(self):
         return reverse('comment:detail', kwargs={'pk': self.pk})
 
     @property

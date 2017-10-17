@@ -19,48 +19,62 @@ from src.images.models import Image
 
 class CreateGetLikesAPI(ListAPIView, CreateAPIView):
     """
-
+    Класа која се користи за креирање лајка и за добављање листе
+    свих лајкова репрезентованих у JSON формату
     """
 
-    serializer_class = [LikeSerializer, CreateLikeSerializer]
+    # класе за серијализацују које ће се применити
+    serializer_class   = LikeSerializer
+
+    # класе права приступа
     permission_classes = [AllowAny]
 
+
     def get_queryset(self, *args, **kwargs):
+        """
+        Метода помоћу које се добављају сви подаци
+        :param args:
+        :param kwargs:  image_id
+        :return: QuerySet
+        """
+
+        # експлицитно назначавање која се серијализација користи
         self.serializer_class = LikeSerializer
-        self.permission_classes = AllowAny
 
         image_id = self.kwargs.get("image_id")
-        if not image_id:
-            return JsonResponse({"status": "fail", "code": 403}, safe=True)
 
-        image = Image.objects.get(pk=image_id)
-        if not image:
-            return JsonResponse({"status": "fail", "code": 404}, safe=True)
+        # узми објекат са ид-јем, ако не постоји врати 404
+        image = get_object_or_404(Image, pk=image_id)
 
-        queryset_list = Like.objects.filter(image__pk=image_id)
+        # добављање свих лајкова који су асоцијацији са сликом
+        queryset_list = image.like_set.all()
         return queryset_list
 
-    def perform_create(self, serializer):
-        if self.kwargs['profile_id']:
-            profile = Profile.objects.get(user=self.request.user)
-            serializer.save(owner=profile)
+
 
     def post(self, request, *args, **kwargs):
-        self.permission_classes = IsAuthenticated
-        self.serializer_class = CreateLikeSerializer
+        """
+        Метода помоћу које се врши креирање
+        Окида се на HTTP POST метод
+        :param request: user
+        :param args:
+        :param kwargs: image_id
+        :return: Like|Http404
+        """
 
-        image_id = self.kwargs.get('image_id')
-        profile_id = Profile.objects.get(user=self.request.user).id
+        # експлицитно навођење која ће се класа за права приступа користити
+        self.permission_classes = [IsAuthenticated]
 
-        if not image_id or not profile_id:
-            return JsonResponse({"status": "fail", "code": 406})
+        self.serializer_class   = CreateLikeSerializer
 
-        image = Image.objects.get(pk=self.kwargs.get('image_id'))
-        profile = Profile.objects.get(user=self.request.user)
+        image_id = self.kwargs.get('image_id', None)
+        image = get_object_or_404(Image, image_id)
+
+        profile = get_object_or_404(Profile, user=self.request.user)
 
         # ако лајк већ постоји, обриши га
         try:
-            exist = Like.objects.get(image__pk=image_id, owner__pk=profile_id)
+            exist = Like.objects.get(image__pk=image_id, owner__pk=profile.id)
             if exist:
                 exist.delete()
                 return JsonResponse({"status": "success", "code": 200, "data": None, "messages": ["Unliked!"]})
@@ -69,7 +83,9 @@ class CreateGetLikesAPI(ListAPIView, CreateAPIView):
 
         like = Like()
         like.save()
+        # асоцијација са профилом
         like.owner.add(profile)
+        # асоцијација са сликом
         like.image.add(image)
         like.save()
 
@@ -78,25 +94,25 @@ class CreateGetLikesAPI(ListAPIView, CreateAPIView):
 
 class LikeDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
-
+    Класа која се користи за приказ, ажурирање и брисање инстанце класе Лајк;
+    Репрезентује податке у JSON формату
     """
     queryset = Like.objects.all()
     serializer_class = DetailedLikeSerializer
     permission_classes = [IsAdminOrOwnerOrReadOnly]
 
     def get_object(self):
+        """
+        Метода помоћу које се врши добављање појединачне инстанце;
+        Окида се на HTTP GET метод
+        :return: Like|Http404
+        """
         # ipdb.set_trace(context=5)
-        image_id = self.kwargs.get("image_id")
-        like_id = self.kwargs.get("like_id")
+        image_id = self.kwargs.get("image_id", None)
+        like_id  = self.kwargs.get("like_id", None)
 
-        if not (image_id and like_id):
-            return JsonResponse({"status": "fail", "code": 406})
-
-        image = Image.objects.get(pk=image_id)
-        if not image:
-            return JsonResponse({"status": "fail", "code": 404})
-
-        like = image.like_set.get(pk=like_id)
+        image = get_object_or_404(Image, pk=image_id)
+        like  = get_object_or_404(queryset=image.like_set.all(), pk=like_id)
         return like
 
     def put(self, request, *args, **kwargs):

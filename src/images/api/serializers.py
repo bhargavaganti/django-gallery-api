@@ -8,37 +8,38 @@ from src.likes.api.serializers import LikeSerializer
 
 class ImageSerializer(ModelSerializer):
     """
-
+    Класа која претвара инстанцу модела класе у JSON објекат;
+    Враћа само основне податке о слици
     """
 
     class Meta:
+        # о ком моделу је реч
         model = Image
+
+        # која поља ће се серијализовати
         fields = [
             'id',
             'name',
             'description',
             'album',
             'image',
-            # 'tags',
-            # 'comments',
-            # 'likes',
             'is_public',
-            'timestamp',
-            'updated'
         ]
-
+    # за поље image, враћа само њену локацију
     def get_image(self, obj):
         return obj.image.url
 
 
 class DetailedImageSerializer(ModelSerializer):
     """
-
+    Класа за серијализацију инстанце модела Слике;
+    Враћа све постојеће податке за модел Слика
     """
 
+    # Атрибути који се не налазе у низу атрибута код Албум модела,а асоцијативни су са сликом
     comments = SerializerMethodField()
-    likes = SerializerMethodField()
-    tags = SerializerMethodField()
+    likes    = SerializerMethodField()
+    tags     = SerializerMethodField()
 
     class Meta:
         model = Image
@@ -81,11 +82,9 @@ class DetailedImageSerializer(ModelSerializer):
 
 class CreateImageSerializer(ModelSerializer):
     """
-
+    Класа за серијализацију инстанце модела Слика;
+    Серијализује JSON објекат у инстанцу модела Слика
     """
-
-    # album = AlbumSerializer()
-    # album = SerializerMethodField()
 
     class Meta:
         model = Image
@@ -95,5 +94,5 @@ class CreateImageSerializer(ModelSerializer):
             'name',
             'description',
             'is_public',
-            'tags'
         ]
+

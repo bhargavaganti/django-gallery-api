@@ -8,31 +8,30 @@ from src.images.models import Image
 
 class TagSerializer(ModelSerializer):
     """
-
+    Класа која претвара инстанцу модела класе у JSON објекат;
+    Враћа само основне податке о ознаци (тагу)
     """
 
-    # images = SerializerMethodField()
-
     class Meta:
+
+        # о ком моделу је реч
         model = Tag
+
+        # која поља ће се серијализовати
         fields = [
             'id',
             'name',
-            # 'images',
-            # 'timestamp',
-            # 'updated'
         ]
 
-        # def get_images(self, obj):
-        #     images_qs = Image.objects.all()
-        #     images = ImageSerializer(images_qs, many=True).data
-        #     return images
 
 
 class DetailedTagSerializer(ModelSerializer):
     """
-
+    Класа за серијализацију инстанце модела Ознака;
+    Враћа све постојеће податке за модел Ознака
     """
+
+    # Атрибути који се не налазе у низу атрибута код Албум модела,а асоцијативни су са сликом
     images = SerializerMethodField()
 
     class Meta:
@@ -45,6 +44,8 @@ class DetailedTagSerializer(ModelSerializer):
             'updated'
         ]
 
+    # Серијализација поља којих нема непосредно у моделу Oзнака
+
     def get_images(self, obj):
         images_qs = obj.images.all()
         images = ImageSerializer(images_qs, many=True).data
@@ -53,13 +54,10 @@ class DetailedTagSerializer(ModelSerializer):
 
 class CreateTagSerializer(ModelSerializer):
     """
-
+    Класа за серијализацију инстанце модела Ознака;
+    Серијализује JSON објекат у инстанцу модела Ознака;
     """
 
     class Meta:
         model = Tag
-        fields = [
-            'name',
-            # 'images',
-            'timestamp',
-        ]
+        fields = ['name',]

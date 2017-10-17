@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf.urls import url
 from django.http import HttpResponse
-
+from rest_framework.documentation import include_docs_urls
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
 from .tests import testing
 
@@ -13,9 +13,7 @@ from .tests import testing
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-
-    # url(r'^albums/', include('src.albums.urls', namespace='albums')),
-    # url(r'^tags/', include('src.tags.urls', namespace='tags')),
+    url(r'^api/docs/', include('rest_framework_docs.urls')),
     url(r'^api/auth/', include("src.authentication.api.urls", namespace='auth')),
     url(r'^api/albums/', include("src.albums.api.urls", namespace='albums-api')),
     url(r'^api/images/', include("src.images.api.urls", namespace='images-api')),

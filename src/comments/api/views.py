@@ -19,91 +19,133 @@ from src.images.models import Image
 
 class CreateGetCommentsAPI(ListAPIView, CreateAPIView):
     """
-
+    Класа која се користи за креирање коментара и за добављање листе
+    свих коментара слике репрезентованих у JSON формату
     """
-    serializer_class = [CommentSerializer, CreateCommentSerializer]
+
+    # класе за серијализацују које ће се применити
+    serializer_class = CommentSerializer
+
+    # укључивање могућности филтрирања
     filter_backends = [SearchFilter]  # ово мора бити низ!
+
+    # поља по којима ће претрага бити вршена
     search_fields = ("content__icontains",)
+
+    # класе права приступа
     permission_classes = [AllowAny]
 
     def get_queryset(self, *args, **kwargs):
-        self.serializer_class = CommentSerializer
+        """
+        Mетода помоћу које се добављају сви подаци
+        :param args:
+        :param kwargs: image_id
+        :return: QuerySet
+        """
 
-        image_id   = self.kwargs.get("image_id")
+        self.serializer_class = CommentSerializer # експлицитно назначавање која се серијализација користи
+
+        image_id = self.kwargs.get("image_id")
         if not image_id:
-            return Response({"status": "fail"}, status=403)
+            return JsonResponse(
+                {"status": "fail", "code": 406, "data": None, "messages": ["Error: No image id provided!"]})
 
         queryset_list = Comment.objects.filter(image__pk=image_id)
         return queryset_list
 
-    def perform_create(self, serializer):
-        if self.kwargs['profile_id']:
-            profile = Profile.objects.get(user=self.request.user)
-            serializer.save(owner=profile)
 
     def post(self, request, *args, **kwargs):
-        serializer_class = CreateCommentSerializer
+        """
+        Mетода помоћу које се врши креирање
+        :param request:
+        :param args:
+        :param kwargs: image_id
+        :return: Album|Http404
+        """
+
+        # ipdb.set_trace()
+        self.serializer_class = CreateCommentSerializer # експлицитно навођење која ће се класа за серијализацију користити
+        self.permission_classes = [IsAuthenticated] # експлицитно навођење која ће се класа за права приступа користити
 
         owner_id = Profile.objects.get(user=request.user).id
         image_id = request.POST.get('image', self.kwargs.get("image_id"))
         content  = request.POST['content']
 
         if not owner_id:
-            return JsonResponse({"status": "fail", "code": 406, "messages": ["No profile id provided."]})
+            return JsonResponse({"status": "fail", "code": 406, "data":None, "messages": ["No profile id provided."]})
 
-        profile = Profile.objects.get(pk=owner_id)
-        image   = Image.objects.get(pk=image_id)
+        profile = get_object_or_404(Profile, pk=owner_id)
+        image   = get_object_or_404(Image, pk=image_id)
         comment = Comment(content=content)
         comment.save()
+        # асоцијација са профилом
         comment.owner.add(profile)
+        # асоцијација са сликом
         comment.image.add(image)
         comment.save()
         image.save()
-        return JsonResponse(serializer_class(instance=comment).data)
+        return JsonResponse({"status": "success", "code": 200, "data":self.serializer_class(instance=comment).data,
+                             "messages": ["Comment successfully created!"]})
+
 
 
 class CommentDetailAPIView(DestroyModelMixin, UpdateModelMixin, RetrieveAPIView):
     """
-
+    Класа која се користи за приказ, ажурирање и брисање инстанце класе Коментар;
+    Репрезентује податке у JSON формату
     """
-    queryset = Comment.objects.all()
-    serializer_class = DetailedCommentSerializer
+    queryset           = Comment.objects.all()
+    serializer_class   = DetailedCommentSerializer
     permission_classes = [IsAdminOrOwnerOrReadOnly]
 
     def get_object(self):
+        """
+        Mетода која се користи за добијање појединачног објекта
+        Окида се на HTTP GET методу
+        :return: Comment | Http404
+        """
         profile_id = self.kwargs.get("profile_id")
         image_id   = self.kwargs.get("image_id")
         comment_id = self.kwargs.get("comment_id")
 
         if not (image_id and comment_id):
-            return JsonResponse({"status": "fail", "code": 406})
+            return JsonResponse({"status": "fail", "code": 406, "data": None,
+                             "messages": ["Error: No image or comment id provided"]})
 
-        image = Image.objects.get(pk=image_id)
-        if not image:
-            return JsonResponse({"status": "fail", "code": 404})
+        image = get_object_or_404(Image, pk=image_id)
 
-        comment = image.comment_set.get(pk=comment_id)
-        if not comment:
-            return JsonResponse({"status": "fail", "code": 404})
-
+        # приступање сету коментара који су у асоцијацији са сликом
+        comment = get_object_or_404(queryset=image.comment_set.all(),pk=comment_id)
         return comment
 
     def put(self, request, *args, **kwargs):
+        """
+        Метода која се користи за ажурирање објекта
+        Окида се на HTTP PUT методу
+        :param request: content
+        :param args:
+        :param kwargs: image_id, comment_id
+        :return: Comment | Http404
+        """
         comment_id = self.kwargs.get("comment_id")
         if not comment_id:
-            return JsonResponse({"status": "fail", "code": 406})
+            return JsonResponse({"status": "fail", "code": 406, "data": None,
+                                 "messages": ["Error: No comment id provided"]})
 
-        comment = Comment.objects.get(pk=comment_id)
-
-        if not comment:
-            return JsonResponse({"status": "fail", "code": 404})
-
+        comment = get_object_or_404(Comment, pk=comment_id)
         comment.content = request.POST.get('content', comment.content)
         comment.save()
-
-        return JsonResponse({"status": "success", "code": 200, "data": self.serializer_class(instance=comment).data,
-                             "messages": ["Comment successfully updated!"]})
+        return comment
 
 
     def delete(self, request, *args, **kwargs):
+        """
+        Meтода која се користи за брисање инстанце
+        Окида се на HTTP DELETE методу
+        :param request: user
+        :param args:
+        :param kwargs: comment_id
+        :return: JsonResponse
+        """
+
         return self.destroy(request, *args, **kwargs)

@@ -4,17 +4,18 @@ from src.gallery.helpers import log
 
 class IsAdminOrOwnerOrReadOnly(BasePermission):
     """
-
+    Класа права приступа која пропушта само власника
+    или супер корисника да мења стање објекта.
+    Ако није власник или корисник може само да
+    добије информације о објекту.
     """
     message = "Морате бити админ или власник да бисте могли мењати ове информације."
 
     # Ако има право приступа објекту
     def has_object_permission(self, request, view, obj):
-        like_owner = obj.owner # добављање једног објекта по параметру
+        like_owner = obj.owner # добављање инстанце аутора лајка
         if not like_owner:
             return False
         log(like_owner)
-        if request.method in SAFE_METHODS:
-            return like_owner.user == request.user or request.user.is_superuser
-        else:
-            print("Not in safe methods")
+        # ако је аутент. корисник власник или суперкорисник
+        return like_owner.user == request.user or request.user.is_superuser
